@@ -1,0 +1,41 @@
+
+:root {
+    --custom-primary: #000000;
+    --custom-primary-hover: #1c1c1d;
+  }
+  
+  .login-card .card-header {
+    background-color: var(--custom-primary);
+  }
+  
+  .login-btn {
+    background-color: var(--custom-primary);
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-btn:hover {
+    background-color: var(--custom-primary-hover);
+  }
+  
+  .login-btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+  }
+  
+  .login-btn:disabled {
+    background-color: #a5b4fc; /* lighter shade for disabled state */
+  }
+  
+  .login-card .input-group-text {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+  }
+  
+  .forgot-password {
+    color: var(--custom-primary);
+  }
+  
+  .forgot-password:hover {
+    color: var(--custom-primary-hover);
+  }
