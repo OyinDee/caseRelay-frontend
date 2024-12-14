@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Navbar } from 'react-bootstrap';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './DashboardPage.css';
+import './css/Dashboard.css';
 
 const DashboardPage = ({ onLogout }) => {
   const [key, setKey] = useState('pending');
