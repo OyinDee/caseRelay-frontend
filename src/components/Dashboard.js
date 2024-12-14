@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Navbar } from 'react-bootstrap';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './DashboardPage.css';
 
 const DashboardPage = ({ onLogout }) => {
   const [key, setKey] = useState('pending');
@@ -106,58 +107,47 @@ const DashboardPage = ({ onLogout }) => {
   const filteredCases = cases.filter((c) => c.status === key);
 
   return (
-    <>
-      <Navbar bg="dark" variant="dark" className="mb-4">
+    <div className="dashboard-wrapper">
+      <Navbar bg="dark" variant="dark" className="dashboard-navbar">
         <Container>
-          <Navbar.Brand>Case Management System</Navbar.Brand>
+          <Navbar.Brand className="dashboard-brand">Case Management System</Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse className="justify-content-end">
-            <Button variant="outline-light" onClick={handleLogout}>
+            <Button variant="outline-light" onClick={handleLogout} className="logout-btn">
               Logout
             </Button>
           </Navbar.Collapse>
         </Container>
       </Navbar>
 
-      <Container 
-        className="dashboard-container" 
-        style={{ 
-          minHeight: "calc(100vh - 56px)", 
-          backgroundColor: "#f4f6f9", 
-          padding: "2rem"
-        }}
-      >
-        <div className="user-details bg-white shadow-sm rounded p-4 mb-4">
+      <Container className="dashboard-container">
+        <div className="user-details-card">
           <div className="row">
             <div className="col-md-6">
-              <h3 className="mb-3" style={{ color: "#333" }}>
+              <h3 className="user-name">
                 {userDetails.name || 'Officer Dashboard'}
               </h3>
-              <p className="mb-2">
-                <strong>Rank:</strong> {userDetails.rank || 'N/A'}
-              </p>
-              <p className="mb-2">
-                <strong>Department:</strong> {userDetails.department || 'N/A'}
-              </p>
-              <p>
-                <strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}
-              </p>
+              <div className="user-info">
+                <p><strong>Rank:</strong> {userDetails.rank || 'N/A'}</p>
+                <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
+                <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
+              </div>
             </div>
             <div className="col-md-6 text-end">
-              <h2 className="text-primary">Case Overview</h2>
+              <h2 className="case-overview-title">Case Overview</h2>
             </div>
           </div>
         </div>
 
         {isLoading && (
-          <div className="text-center my-5">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-2">Loading cases...</p>
+          <div className="loading-container">
+            <Spinner animation="border" variant="dark" />
+            <p className="loading-text">Loading cases...</p>
           </div>
         )}
 
         {error && (
-          <Alert variant="danger" className="mb-4">
+          <Alert variant="danger" className="error-alert">
             {error}
           </Alert>
         )}
@@ -166,22 +156,22 @@ const DashboardPage = ({ onLogout }) => {
           id="case-tabs"
           activeKey={key}
           onSelect={(k) => setKey(k)}
-          className="mb-3"
+          className="case-tabs"
         >
           <Tab eventKey="pending" title="Pending Cases">
             {filteredCases.length === 0 ? (
-              <p className="text-center text-muted">No pending cases</p>
+              <p className="no-cases-message">No pending cases</p>
             ) : (
               filteredCases.map((caseItem) => (
-                <Card key={caseItem.id} className="mb-3">
+                <Card key={caseItem.id} className="case-card">
                   <Card.Header 
                     onClick={() => toggleCase(caseItem.id)}
-                    style={{ cursor: 'pointer' }}
+                    className="case-card-header"
                   >
                     <strong>{caseItem.caseNumber}</strong> - {caseItem.officerName}
                   </Card.Header>
                   <Collapse in={expandedCases[caseItem.id]}>
-                    <Card.Body>
+                    <Card.Body className="case-card-body">
                       <p><strong>Comment:</strong> {caseItem.comment}</p>
                       <p><strong>Officer in Charge:</strong> {caseItem.officerInCharge}</p>
                       <p><strong>Date Started:</strong> {caseItem.dateStarted}</p>
@@ -196,18 +186,18 @@ const DashboardPage = ({ onLogout }) => {
           </Tab>
           <Tab eventKey="solved" title="Solved Cases">
             {filteredCases.length === 0 ? (
-              <p className="text-center text-muted">No solved cases</p>
+              <p className="no-cases-message">No solved cases</p>
             ) : (
               filteredCases.map((caseItem) => (
-                <Card key={caseItem.id} className="mb-3">
+                <Card key={caseItem.id} className="case-card">
                   <Card.Header 
                     onClick={() => toggleCase(caseItem.id)}
-                    style={{ cursor: 'pointer' }}
+                    className="case-card-header"
                   >
                     <strong>{caseItem.caseNumber}</strong> - {caseItem.officerName}
                   </Card.Header>
                   <Collapse in={expandedCases[caseItem.id]}>
-                    <Card.Body>
+                    <Card.Body className="case-card-body">
                       <p><strong>Comment:</strong> {caseItem.comment}</p>
                       <p><strong>Officer in Charge:</strong> {caseItem.officerInCharge}</p>
                       <p><strong>Date Started:</strong> {caseItem.dateStarted}</p>
@@ -222,7 +212,7 @@ const DashboardPage = ({ onLogout }) => {
           </Tab>
         </Tabs>
       </Container>
-    </>
+    </div>
   );
 };
 
