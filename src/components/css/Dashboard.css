@@ -1,22 +1,112 @@
+/* Dashboard Styling */
+.dashboard-wrapper {
+  background-color: #f4f6f9;
+  min-height: 100vh;
+}
+
+.dashboard-navbar {
+  background-color: #1a1a1a !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dashboard-brand {
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.logout-btn {
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
 .dashboard-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .card-header h5 {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .card-header small {
-    font-size: 1rem;
-    color: #6c757d;
-  }
-  
-  .card-body p {
-    font-size: 1.2rem;
-    color: #000000;
-  }
-  
+  padding: 2rem;
+}
+
+.user-details-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.user-name {
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.user-info p {
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.case-overview-title {
+  color: #1a1a1a;
+  font-weight: bold;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.loading-text {
+  margin-top: 1rem;
+  color: #666;
+}
+
+.error-alert {
+  margin-bottom: 1.5rem;
+}
+
+.case-tabs .nav-link {
+  color: #1a1a1a;
+  font-weight: bold;
+}
+
+.case-tabs .nav-link.active {
+  background-color: #1a1a1a;
+  color: white !important;
+}
+
+.no-cases-message {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.case-card {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.case-card-header {
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.case-card-header:hover {
+  background-color: #e9ecef;
+}
+
+.case-card-body {
+  background-color: white;
+}
+
+.case-card-body p {
+  margin-bottom: 0.75rem;
+  color: #333;
+}
