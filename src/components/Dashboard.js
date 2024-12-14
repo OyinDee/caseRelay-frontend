@@ -12,7 +12,7 @@ const DashboardPage = ({ onLogout }) => {
   const [error, setError] = useState(null);
   const [userDetails, setUserDetails] = useState({
     name: '',
-    rank: '',
+    role: '',
     department: '',
     badgeNumber: ''
   });
@@ -61,38 +61,11 @@ const DashboardPage = ({ onLogout }) => {
         const message =
           err.response?.data?.message || "Failed to fetch cases. Try again.";
         setError(message);
-      } finally {
         setIsLoading(false);
       }
     };
 
-    const demoCases = [
-      {
-        id: 1,
-        caseNumber: 'CR-001',
-        comment: 'Investigating a robbery case. Suspect identified, awaiting arrest.',
-        officerName: userDetails.name || 'Officer John Doe',
-        officerInCharge: 'Sergeant Mike Johnson',
-        dateStarted: '2024-01-01',
-        dateHandedOver: null,
-        status: 'pending',
-      },
-      {
-        id: 2,
-        caseNumber: 'CR-002',
-        comment: 'Solved a cybercrime case. Suspect convicted.',
-        officerName: userDetails.name || 'Officer Jane Smith',
-        officerInCharge: 'Sergeant Mike Johnson',
-        dateStarted: '2024-01-05',
-        dateHandedOver: '2024-02-10',
-        status: 'solved',
-      }
-    ];
-
-    fetchCases().catch(() => {
-      setCases(demoCases);
-      setIsLoading(false);
-    });
+    fetchCases();
   }, [onLogout]);
 
   const toggleCase = (caseId) => {
@@ -102,7 +75,13 @@ const DashboardPage = ({ onLogout }) => {
     }));
   };
 
-  const filteredCases = cases.filter((c) => c.status === key);
+  const getPendingStatuses = ['Pending', 'Open', 'Investigating'];
+  const getSolvedStatuses = ['Closed', 'Resolved'];
+
+  const filteredCases = cases.filter((c) => 
+    (key === 'pending' && getPendingStatuses.includes(c.status)) ||
+    (key === 'closed' && getSolvedStatuses.includes(c.status))
+  );
 
   return (
     <div className="dashboard-wrapper">
@@ -119,7 +98,6 @@ const DashboardPage = ({ onLogout }) => {
       </Navbar>
 
       <Container className="dashboard-container">
-        {/* User Details Section */}
         <div className="user-details-card mb-4">
           <div className="row">
             <div className="col-md-8">
@@ -138,7 +116,6 @@ const DashboardPage = ({ onLogout }) => {
           </div>
         </div>
 
-        {/* Loading Spinner or Error Message */}
         {isLoading && (
           <div className="loading-container">
             <Spinner animation="border" variant="dark" />
@@ -152,59 +129,60 @@ const DashboardPage = ({ onLogout }) => {
           </Alert>
         )}
 
-        {/* Tabs Section */}
         <Tabs
           id="case-tabs"
           activeKey={key}
           onSelect={(k) => setKey(k)}
-          className="case-tabs"
+          className="case-tabs mb-3"
         >
           <Tab eventKey="pending" title="Pending Cases">
             {filteredCases.length === 0 ? (
               <p className="no-cases-message">No pending cases</p>
             ) : (
               filteredCases.map((caseItem) => (
-                <Card key={caseItem.id} className="case-card mb-3">
+                <Card key={caseItem.caseId} className="case-card mb-3">
                   <Card.Header
-                    onClick={() => toggleCase(caseItem.id)}
+                    onClick={() => toggleCase(caseItem.caseId)}
                     className="case-card-header"
                   >
-                    <strong>{caseItem.caseNumber}</strong> - {caseItem.officerName}
+                    <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
                   </Card.Header>
-                  <Collapse in={expandedCases[caseItem.id]}>
+                  <Collapse in={expandedCases[caseItem.caseId]}>
                     <Card.Body className="case-card-body">
-                      <p><strong>Comment:</strong> {caseItem.comment}</p>
-                      <p><strong>Officer in Charge:</strong> {caseItem.officerInCharge}</p>
-                      <p><strong>Date Started:</strong> {caseItem.dateStarted}</p>
-                      {caseItem.dateHandedOver && (
-                        <p><strong>Date Handed Over:</strong> {caseItem.dateHandedOver}</p>
-                      )}
+                      <p><strong>Description:</strong> {caseItem.description}</p>
+                      <p><strong>Category:</strong> {caseItem.category}</p>
+                      <p><strong>Severity:</strong> {caseItem.severity}</p>
+                      <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
+                      <p><strong>Status:</strong> {caseItem.status}</p>
+                      <button className="handover-button w-100">Handover this case</button>
                     </Card.Body>
                   </Collapse>
                 </Card>
               ))
             )}
           </Tab>
-          <Tab eventKey="solved" title="Solved Cases">
+          <Tab eventKey="closed" title="Solved Cases">
             {filteredCases.length === 0 ? (
               <p className="no-cases-message">No solved cases</p>
             ) : (
               filteredCases.map((caseItem) => (
-                <Card key={caseItem.id} className="case-card mb-3">
+                <Card key={caseItem.caseId} className="case-card mb-3">
                   <Card.Header
-                    onClick={() => toggleCase(caseItem.id)}
+                    onClick={() => toggleCase(caseItem.caseId)}
                     className="case-card-header"
                   >
-                    <strong>{caseItem.caseNumber}</strong> - {caseItem.officerName}
+                    <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
                   </Card.Header>
-                  <Collapse in={expandedCases[caseItem.id]}>
+                  <Collapse in={expandedCases[caseItem.caseId]}>
                     <Card.Body className="case-card-body">
-                      <p><strong>Comment:</strong> {caseItem.comment}</p>
-                      <p><strong>Officer in Charge:</strong> {caseItem.officerInCharge}</p>
-                      <p><strong>Date Started:</strong> {caseItem.dateStarted}</p>
-                      {caseItem.dateHandedOver && (
-                        <p><strong>Date Handed Over:</strong> {caseItem.dateHandedOver}</p>
+                      <p><strong>Description:</strong> {caseItem.description}</p>
+                      <p><strong>Category:</strong> {caseItem.category}</p>
+                      <p><strong>Severity:</strong> {caseItem.severity}</p>
+                      <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
+                      {caseItem.resolvedAt && (
+                        <p><strong>Resolved At:</strong> {new Date(caseItem.resolvedAt).toLocaleString()}</p>
                       )}
+                      <p><strong>Status:</strong> {caseItem.status}</p>
                     </Card.Body>
                   </Collapse>
                 </Card>
