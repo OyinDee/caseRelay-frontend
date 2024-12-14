@@ -3,7 +3,6 @@ import { Container, Form, Button, Row, Col, Spinner, Alert } from 'react-bootstr
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './css/signup.css';
 
 const SignupPage = () => {
   const [loading, setLoading] = useState(false);
@@ -23,6 +22,7 @@ const SignupPage = () => {
       phone: formData.get('phone'),
       policeId: formData.get('policeId'),
       department: formData.get('department'),
+      badgeNumber: formData.get('badgeNumber'),
       role: 'Officer',
       passcode: formData.get('passcode'),
     };
@@ -43,80 +43,103 @@ const SignupPage = () => {
   };
 
   return (
-    <Container className="signup-container" style={{ minHeight: "100vh", backgroundColor: "#f8f9fa", padding: "2rem", paddingTop: "5rem" }}>
-      <Row className="justify-content-center">
-        <Col md={10} lg={8}>
-          <div className="signup-form p-4 shadow-sm rounded" style={{ backgroundColor: "#ffffff" }}>
-            <h2 className="text-center mb-4" style={{ color: "#343a40" }}>Police Department Sign-Up</h2>
-            {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-            <Form onSubmit={handleSignup}>
+    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+      <div className="w-100 mt-4" style={{ maxWidth: "500px" }}>
+        <div className="border p-4 rounded shadow-sm">
+          <h2 className="text-center mb-4">Police Department Sign-Up</h2>
+          
+          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+          
+          <Form onSubmit={handleSignup}>
+            <div className="mb-3">
               <Row>
-                <Col md={6}>
-                  <Form.Group controlId="formFirstName" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formFirstName">
                     <Form.Label>First Name</Form.Label>
-                    <Form.Control type="text" name="firstName" placeholder="Enter first name" required />
+                    <Form.Control type="text" name="firstName" placeholder="First name" required />
                   </Form.Group>
                 </Col>
-                <Col md={6}>
-                  <Form.Group controlId="formLastName" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formLastName">
                     <Form.Label>Last Name</Form.Label>
-                    <Form.Control type="text" name="lastName" placeholder="Enter last name" required />
+                    <Form.Control type="text" name="lastName" placeholder="Last name" required />
                   </Form.Group>
                 </Col>
               </Row>
+            </div>
 
+            <div className="mb-3">
               <Row>
-                <Col md={6}>
-                  <Form.Group controlId="formEmail" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formEmail">
                     <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" name="email" placeholder="Enter email" required />
+                    <Form.Control type="email" name="email" placeholder="Email address" required />
                   </Form.Group>
                 </Col>
-                <Col md={6}>
-                  <Form.Group controlId="formPhone" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formPhone">
                     <Form.Label>Phone</Form.Label>
-                    <Form.Control type="text" name="phone" placeholder="Enter phone number" required />
+                    <Form.Control type="tel" name="phone" placeholder="Phone number" required />
                   </Form.Group>
                 </Col>
               </Row>
+            </div>
 
+            <div className="mb-3">
               <Row>
-                <Col md={6}>
-                  <Form.Group controlId="formPoliceId" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formPoliceId">
                     <Form.Label>Police ID</Form.Label>
-                    <Form.Control type="text" name="policeId" placeholder="Enter police ID" required />
+                    <Form.Control type="text" name="policeId" placeholder="Police ID" required />
                   </Form.Group>
                 </Col>
-                <Col md={6}>
-                  <Form.Group controlId="formDepartment" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formDepartment">
                     <Form.Label>Department</Form.Label>
                     <Form.Control as="select" name="department" required>
+                      <option value="">Select Department</option>
                       <option>Crime</option>
                       <option>Homicide</option>
                       <option>Narcotics</option>
                       <option>Cybercrime</option>
-                      {/* Add more departments as needed */}
+                      <option>Fraud</option>
+                      <option>Traffic</option>
+                      <option>Forensics</option>
+                      <option>Intelligence</option>
                     </Form.Control>
                   </Form.Group>
                 </Col>
               </Row>
+            </div>
 
+            <div className="mb-3">
               <Row>
-                <Col md={6}>
-                  <Form.Group controlId="formPasscode" className="mb-3">
+                <Col>
+                  <Form.Group controlId="formBadgeNumber">
+                    <Form.Label>Badge Number</Form.Label>
+                    <Form.Control type="text" name="badgeNumber" placeholder="Badge number" required />
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group controlId="formPasscode">
                     <Form.Label>Passcode</Form.Label>
-                    <Form.Control type="password" name="passcode" placeholder="Enter passcode" required />
+                    <Form.Control type="password" name="passcode" placeholder="Create passcode" required />
                   </Form.Group>
                 </Col>
               </Row>
+            </div>
 
-              <Button variant="primary" type="submit" className="w-100" style={{ backgroundColor: "#343a40", borderColor: "#343a40" }} disabled={loading}>
-                {loading ? <Spinner animation="border" size="sm" /> : 'Sign Up'}
-              </Button>
-            </Form>
-          </div>
-        </Col>
-      </Row>
+            <Button 
+              variant="dark" 
+              type="submit" 
+              className="w-100 mt-3" 
+              disabled={loading}
+            >
+              {loading ? <Spinner animation="border" size="sm" /> : 'Sign Up'}
+            </Button>
+          </Form>
+        </div>
+      </div>
     </Container>
   );
 };

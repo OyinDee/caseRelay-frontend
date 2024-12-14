@@ -30,13 +30,8 @@ const LoginPage = () => {
 
       const { token, userId, name, role, department, badgeNumber, rank } = response.data;
 
+      localStorage.setItem('userDetails', JSON.stringify({userId, name, role, department, badgeNumber, rank }))
       localStorage.setItem('jwtToken', token);
-      localStorage.setItem('userId', userId);
-      localStorage.setItem('name', name);
-      localStorage.setItem('role', role);
-      localStorage.setItem('department', department);
-      localStorage.setItem('badgeNumber', badgeNumber);
-      localStorage.setItem('rank', rank);
 
       navigate('/dashboard');
     } catch (error) {

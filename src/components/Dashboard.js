@@ -57,14 +57,12 @@ const DashboardPage = ({ onLogout }) => {
 
         setCases(response.data);
         setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching cases:', error);
-        setError(error.message);
+      }  catch (err) {
+        const message =
+          err.response?.data?.message || "Failed to fetch cases. Try again.";
+        setError(message);
+      } finally {
         setIsLoading(false);
-
-        if (error.response && error.response.status === 401) {
-          handleLogout();
-        }
       }
     };
 
@@ -129,7 +127,7 @@ const DashboardPage = ({ onLogout }) => {
                 {userDetails.name || 'Officer Dashboard'}
               </h3>
               <div className="user-info">
-                <p><strong>Rank:</strong> {userDetails.rank || 'N/A'}</p>
+                <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
                 <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
                 <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
               </div>
