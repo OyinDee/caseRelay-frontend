@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,13 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem('jwtToken');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -21,8 +28,15 @@ const LoginPage = () => {
         passcode,
       });
 
-      const { token } = response.data;
+      const { token, userId, name, role, department, badgeNumber, rank } = response.data;
+
       localStorage.setItem('jwtToken', token);
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('name', name);
+      localStorage.setItem('role', role);
+      localStorage.setItem('department', department);
+      localStorage.setItem('badgeNumber', badgeNumber);
+      localStorage.setItem('rank', rank);
 
       navigate('/dashboard');
     } catch (error) {
@@ -46,7 +60,6 @@ const LoginPage = () => {
                 <h3 className="my-2">CaseRelay Login</h3>
               </div>
               <div className="card-body">
-                {/* Error Message */}
                 {errorMessage && (
                   <div className="alert alert-danger text-center" role="alert">
                     {errorMessage}
@@ -54,7 +67,6 @@ const LoginPage = () => {
                 )}
 
                 <form onSubmit={handleLogin}>
-                  {/* Police ID Input */}
                   <div className="mb-3">
                     <label htmlFor="policeId" className="form-label">Police ID</label>
                     <div className="input-group">
@@ -73,7 +85,6 @@ const LoginPage = () => {
                     </div>
                   </div>
 
-                  {/* Passcode Input */}
                   <div className="mb-3">
                     <label htmlFor="passcode" className="form-label">Passcode</label>
                     <div className="input-group">
@@ -92,7 +103,6 @@ const LoginPage = () => {
                     </div>
                   </div>
 
-                  {/* Login Button */}
                   <div className="d-grid">
                     <button 
                       type="submit" 
@@ -112,7 +122,6 @@ const LoginPage = () => {
                 </form>
               </div>
 
-              {/* Card Footer */}
               <div className="card-footer text-center">
                 <a href="#" className="text-decoration-none forgot-password">Forgot Passcode?</a>
               </div>

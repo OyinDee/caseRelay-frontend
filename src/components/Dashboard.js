@@ -48,7 +48,7 @@ const DashboardPage = ({ onLogout }) => {
           throw new Error('Invalid token format');
         }
 
-        const response = await axios.get('http://localhost:5299/api/cases', {
+        const response = await axios.get('http://localhost:5299/api/case/user', {
           headers: {
             'Authorization': `Bearer ${jwtToken}`,
             'Content-Type': 'application/json'
@@ -121,9 +121,10 @@ const DashboardPage = ({ onLogout }) => {
       </Navbar>
 
       <Container className="dashboard-container">
-        <div className="user-details-card">
+        {/* User Details Section */}
+        <div className="user-details-card mb-4">
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-8">
               <h3 className="user-name">
                 {userDetails.name || 'Officer Dashboard'}
               </h3>
@@ -133,12 +134,13 @@ const DashboardPage = ({ onLogout }) => {
                 <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
               </div>
             </div>
-            <div className="col-md-6 text-end">
-              <h2 className="case-overview-title">Case Overview</h2>
+            <div className="col-md-4 text-end">
+              <h4 className="case-overview-title">Case Overview</h4>
             </div>
           </div>
         </div>
 
+        {/* Loading Spinner or Error Message */}
         {isLoading && (
           <div className="loading-container">
             <Spinner animation="border" variant="dark" />
@@ -152,6 +154,7 @@ const DashboardPage = ({ onLogout }) => {
           </Alert>
         )}
 
+        {/* Tabs Section */}
         <Tabs
           id="case-tabs"
           activeKey={key}
@@ -163,8 +166,8 @@ const DashboardPage = ({ onLogout }) => {
               <p className="no-cases-message">No pending cases</p>
             ) : (
               filteredCases.map((caseItem) => (
-                <Card key={caseItem.id} className="case-card">
-                  <Card.Header 
+                <Card key={caseItem.id} className="case-card mb-3">
+                  <Card.Header
                     onClick={() => toggleCase(caseItem.id)}
                     className="case-card-header"
                   >
@@ -189,8 +192,8 @@ const DashboardPage = ({ onLogout }) => {
               <p className="no-cases-message">No solved cases</p>
             ) : (
               filteredCases.map((caseItem) => (
-                <Card key={caseItem.id} className="case-card">
-                  <Card.Header 
+                <Card key={caseItem.id} className="case-card mb-3">
+                  <Card.Header
                     onClick={() => toggleCase(caseItem.id)}
                     className="case-card-header"
                   >

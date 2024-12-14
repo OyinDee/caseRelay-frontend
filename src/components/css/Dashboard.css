@@ -1,112 +1,142 @@
-/* Dashboard Styling */
+/* Dashboard.css */
 .dashboard-wrapper {
-  background-color: #f4f6f9;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
 .dashboard-navbar {
-  background-color: #1a1a1a !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
 }
 
 .dashboard-brand {
   font-weight: bold;
-  letter-spacing: 1px;
+  font-size: 1.5rem;
 }
 
 .logout-btn {
-  transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-  background-color: rgba(255,255,255,0.2);
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .dashboard-container {
-  padding: 2rem;
+  margin: 20px;
 }
 
 .user-details-card {
-  background-color: white;
+  background-color: #f8f9fa;
+  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .user-name {
-  color: #333;
+  font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 1rem;
 }
 
 .user-info p {
-  margin-bottom: 0.5rem;
-  color: #666;
+  font-size: 1rem;
+  margin: 5px 0;
 }
 
 .case-overview-title {
-  color: #1a1a1a;
-  font-weight: bold;
+  font-size: 1.8rem;
+  color: #333;
+  margin-top: 20px;
 }
 
 .loading-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  height: 300px;
+  align-items: center;
+  height: 60vh;
+  flex-direction: column;
 }
 
 .loading-text {
-  margin-top: 1rem;
-  color: #666;
+  margin-top: 10px;
+  font-size: 1.2rem;
 }
 
 .error-alert {
-  margin-bottom: 1.5rem;
+  margin-top: 20px;
+  font-size: 1.1rem;
 }
 
-.case-tabs .nav-link {
-  color: #1a1a1a;
-  font-weight: bold;
-}
-
-.case-tabs .nav-link.active {
-  background-color: #1a1a1a;
-  color: white !important;
+.case-tabs {
+  margin-top: 30px;
 }
 
 .no-cases-message {
-  text-align: center;
-  color: #666;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
+  font-size: 1.2rem;
+  color: #777;
+  padding: 20px;
 }
 
 .case-card {
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .case-card-header {
-  background-color: #f8f9fa;
+  background-color: #f1f1f1;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.case-card-header:hover {
-  background-color: #e9ecef;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .case-card-body {
-  background-color: white;
+  padding: 20px;
+  font-size: 1rem;
 }
 
 .case-card-body p {
-  margin-bottom: 0.75rem;
-  color: #333;
+  margin-bottom: 10px;
+}
+
+.case-card-header:hover {
+  background-color: #e2e2e2;
+}
+
+.case-tabs .nav-item {
+  font-size: 1.1rem;
+}
+
+.case-tabs .nav-link {
+  padding: 10px 20px;
+  color: black;
+}
+
+.case-tabs .nav-link.active {
+  font-weight: bold;
+  color: #fff;
+  background-color: #000000;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    margin: 10px;
+  }
+
+  .user-details-card {
+    padding: 15px;
+  }
+
+  .user-name {
+    font-size: 1.5rem;
+  }
+
+  .case-overview-title {
+    font-size: 1.5rem;
+  }
+
+  .loading-container {
+    flex-direction: column;
+    margin-top: 50px;
+  }
 }

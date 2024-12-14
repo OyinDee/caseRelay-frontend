@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './css/Header.css';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -14,7 +16,17 @@ const Header = () => {
     setMenuOpen(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('jwtToken');
+    setIsLoggedIn(false);
+    closeMenu();
+    navigate('/');
+  };
+
   useEffect(() => {
+    const token = localStorage.getItem('jwtToken');
+    setIsLoggedIn(!!token);
+
     const handleScroll = () => {
       const offset = window.scrollY;
       setScrolled(offset > 50);
@@ -78,6 +90,8 @@ const Header = () => {
                 Home
               </Link>
             </li>
+            {!isLoggedIn ? (
+              <>
             <li className="nav-item">
               <a 
                 className="nav-link text-white nav-hover" 
@@ -87,32 +101,61 @@ const Header = () => {
                 Features
               </a>
             </li>
-            <li className="nav-item">
-              <Link 
-                className="nav-link text-white nav-hover ms-3 text-bold bold" 
-                to="/login" 
-                onClick={closeMenu}
-                style={{
-                  borderRadius: '20px',
-                  padding: '6px 16px'
-                }}
-              >
-                Login
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link 
-                className="nav-link text-white nav-hover ms-3 text-bold bold" 
-                to="/signup" 
-                onClick={closeMenu}
-                style={{
-                  borderRadius: '20px',
-                  padding: '6px 16px'
-                }}
-              >
-                Sign Up
-              </Link>
-            </li>
+                <li className="nav-item">
+                  <Link 
+                    className="nav-link text-white nav-hover ms-3 text-bold bold" 
+                    to="/login" 
+                    onClick={closeMenu}
+                    style={{
+                      borderRadius: '20px',
+                      padding: '6px 16px'
+                    }}
+                  >
+                    Login
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link 
+                    className="nav-link text-white nav-hover ms-3 text-bold bold" 
+                    to="/signup" 
+                    onClick={closeMenu}
+                    style={{
+                      borderRadius: '20px',
+                      padding: '6px 16px'
+                    }}
+                  >
+                    Sign Up
+                  </Link>
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link 
+                    className="nav-link text-white nav-hover" 
+                    to="/dashboard" 
+                    onClick={closeMenu}
+                  >
+                    Dashboard
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <button 
+                    className="nav-link text-white nav-hover ms-3 text-bold bold"
+                    onClick={handleLogout}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '6px 16px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
       </div>
@@ -125,7 +168,7 @@ const Header = () => {
           top: '60px',
           left: 0,
           right: 0,
-          backgroundColor: '#000020',
+          backgroundColor: '#000000', 
           zIndex: 1020,
         }}
       >
@@ -139,33 +182,64 @@ const Header = () => {
               Home
             </Link>
           </li>
-          <li className="nav-item">
-            <Link 
-              className="nav-link text-white py-3" 
-              to="/#features" 
-              onClick={closeMenu}
-            >
-              Features
-            </Link>
+
+          {!isLoggedIn ? (
+            <>
+              <li className="nav-item">
+                <Link 
+                  className="nav-link text-white py-3" 
+                  to="/#features" 
+                  onClick={closeMenu}
+                >
+                  Features
+                </Link>
           </li>
-          <li className="nav-item">
-            <Link 
-              className="nav-link text-white py-3" 
-              to="/login" 
-              onClick={closeMenu}
-            >
-              Login
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link 
-              className="nav-link text-white py-3" 
-              to="/signup" 
-              onClick={closeMenu}
-            >
-              Sign Up
-            </Link>
-          </li>
+              <li className="nav-item">
+                <Link 
+                  className="nav-link text-white py-3" 
+                  to="/login" 
+                  onClick={closeMenu}
+                >
+                  Login
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link 
+                  className="nav-link text-white py-3" 
+                  to="/signup" 
+                  onClick={closeMenu}
+                >
+                  Sign Up
+                </Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li className="nav-item">
+                <Link 
+                  className="nav-link text-white py-3" 
+                  to="/dashboard" 
+                  onClick={closeMenu}
+                >
+                  Dashboard
+                </Link>
+              </li>
+              <li className="nav-item">
+                <button 
+                  className="nav-link text-white py-3"
+                  onClick={handleLogout}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    width: '100%',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Logout
+                </button>
+              </li>
+            </>
+          )}
         </ul>
       </div>
     </header>
