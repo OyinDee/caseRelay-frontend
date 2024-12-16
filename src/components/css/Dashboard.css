@@ -156,3 +156,17 @@
     margin-top: 50px;
   }
 }
+
+.view-case-button {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.view-case-button:hover {
+  background-color: #000000;
+}

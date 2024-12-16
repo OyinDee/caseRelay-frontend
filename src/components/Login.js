@@ -27,7 +27,7 @@ const LoginPage = () => {
         policeId,
         passcode,
       });
-
+      console.log(response.data)
       const { token, userId, name, role, department, badgeNumber, rank } = response.data;
 
       localStorage.setItem('userDetails', JSON.stringify({userId, name, role, department, badgeNumber, rank }))

@@ -23,6 +23,7 @@ const SignupPage = () => {
       policeId: formData.get('policeId'),
       department: formData.get('department'),
       badgeNumber: formData.get('badgeNumber'),
+      rank: formData.get('rank'),
       role: 'Officer',
       passcode: formData.get('passcode'),
     };
@@ -120,6 +121,16 @@ const SignupPage = () => {
                     <Form.Control type="text" name="badgeNumber" placeholder="Badge number" required />
                   </Form.Group>
                 </Col>
+                <Col>
+                  <Form.Group controlId="formRank">
+                    <Form.Label>Rank</Form.Label>
+                    <Form.Control type="text" name="rank" placeholder="Rank" required />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </div>
+            <div className="mb-3">
+              <Row>
                 <Col>
                   <Form.Group controlId="formPasscode">
                     <Form.Label>Passcode</Form.Label>

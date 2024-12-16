@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Navbar } from 'react-bootstrap';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import for redirect
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Dashboard.css';
+import CaseDetailsModal from './CaseDetailsModal';
 
 const DashboardPage = ({ onLogout }) => {
   const [key, setKey] = useState('pending');
@@ -17,10 +19,25 @@ const DashboardPage = ({ onLogout }) => {
     badgeNumber: ''
   });
 
+  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  const [showCaseModal, setShowCaseModal] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
+
   const handleLogout = () => {
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('userDetails');
     onLogout && onLogout();
+    navigate('/login'); 
+  };
+
+  const handleViewCase = (caseId) => {
+    setSelectedCaseId(caseId);
+    setShowCaseModal(true);
+  };
+
+  const handleCloseCaseModal = () => {
+    setShowCaseModal(false);
+    setSelectedCaseId(null);
   };
 
   useEffect(() => {
@@ -36,9 +53,9 @@ const DashboardPage = ({ onLogout }) => {
 
     const fetchCases = async () => {
       const jwtToken = localStorage.getItem('jwtToken');
-      
+
       if (!jwtToken) {
-        handleLogout();
+        handleLogout(); // No token found, log out user
         return;
       }
 
@@ -57,16 +74,21 @@ const DashboardPage = ({ onLogout }) => {
 
         setCases(response.data);
         setIsLoading(false);
-      }  catch (err) {
-        const message =
-          err.response?.data?.message || "Failed to fetch cases. Try again.";
-        setError(message);
-        setIsLoading(false);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          localStorage.removeItem('jwtToken'); // Clear the invalid JWT token
+          navigate('/login'); // Redirect to the login page
+        } else {
+          const message =
+            err.response?.data?.message || 'Failed to fetch cases. Try again.';
+          setError(message);
+          setIsLoading(false);
+        }
       }
     };
 
     fetchCases();
-  }, [onLogout]);
+  }, [onLogout, navigate]);
 
   const toggleCase = (caseId) => {
     setExpandedCases((prev) => ({
@@ -78,7 +100,7 @@ const DashboardPage = ({ onLogout }) => {
   const getPendingStatuses = ['Pending', 'Open', 'Investigating'];
   const getSolvedStatuses = ['Closed', 'Resolved'];
 
-  const filteredCases = cases.filter((c) => 
+  const filteredCases = cases.filter((c) =>
     (key === 'pending' && getPendingStatuses.includes(c.status)) ||
     (key === 'closed' && getSolvedStatuses.includes(c.status))
   );
@@ -154,7 +176,16 @@ const DashboardPage = ({ onLogout }) => {
                       <p><strong>Severity:</strong> {caseItem.severity}</p>
                       <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
                       <p><strong>Status:</strong> {caseItem.status}</p>
-                      <button className="handover-button w-100">Handover this case</button>
+                      <div className="d-flex justify-content-between">
+                        <button className="handover-button w-100 mx-1">Handover this case</button>
+
+                        <button 
+                          className="handover-button w-100 mx-1" 
+                          onClick={() => handleViewCase(caseItem.caseId)}
+                        >
+                          View Case
+                        </button>
+                      </div>
                     </Card.Body>
                   </Collapse>
                 </Card>
@@ -183,6 +214,12 @@ const DashboardPage = ({ onLogout }) => {
                         <p><strong>Resolved At:</strong> {new Date(caseItem.resolvedAt).toLocaleString()}</p>
                       )}
                       <p><strong>Status:</strong> {caseItem.status}</p>
+                      <button 
+                        className="view-case-button w-100" 
+                        onClick={() => handleViewCase(caseItem.caseId)}
+                      >
+                        View Case
+                      </button>
                     </Card.Body>
                   </Collapse>
                 </Card>
@@ -190,6 +227,13 @@ const DashboardPage = ({ onLogout }) => {
             )}
           </Tab>
         </Tabs>
+
+        {/* Case Details Modal */}
+        <CaseDetailsModal 
+          caseId={selectedCaseId}
+          show={showCaseModal}
+          onHide={handleCloseCaseModal}
+        />
       </Container>
     </div>
   );
