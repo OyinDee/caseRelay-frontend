@@ -1,41 +1,78 @@
+body {
+  background-color: #f8f9fa;
+}
 
-:root {
-    --custom-primary: #000000;
-    --custom-primary-hover: #1c1c1d;
-  }
-  
-  .login-card .card-header {
-    background-color: var(--custom-primary);
-  }
-  
-  .login-btn {
-    background-color: var(--custom-primary);
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease;
-  }
-  
-  .login-btn:hover {
-    background-color: var(--custom-primary-hover);
-  }
-  
-  .login-btn:focus {
-    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
-  }
-  
-  .login-btn:disabled {
-    background-color: #a5b4fc; /* lighter shade for disabled state */
-  }
-  
-  .login-card .input-group-text {
-    background-color: #f3f4f6;
-    border-color: #e5e7eb;
-  }
-  
-  .forgot-password {
-    color: var(--custom-primary);
-  }
-  
-  .forgot-password:hover {
-    color: var(--custom-primary-hover);
-  }
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+}
+
+.card-header {
+  background-color: #000000;
+  color: #ffffff;
+  border-bottom: none;
+}
+
+.btn-dark {
+  background-color: #000000;
+  border-color: #000000;
+}
+
+.btn-dark:hover, .btn-dark:focus, .btn-dark:active {
+  background-color: #333333;
+  border-color: #333333;
+}
+
+.btn-link {
+  color: #000000;
+}
+
+.btn-link:hover {
+  color: #333333;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 0.3rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.modal-header {
+  background-color: #000000;
+  color: #ffffff;
+  border-bottom: none;
+}
+
+.modal-title {
+  color: #ffffff;
+}
+
+.btn-close {
+  color: #ffffff;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #000000;
+  box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+}
+

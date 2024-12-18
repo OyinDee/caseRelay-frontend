@@ -83,7 +83,7 @@
 }
 
 .case-card-header {
-  background-color: #f1f1f1;
+  background-color: #000000;
   cursor: pointer;
   padding: 15px;
   font-size: 1.1rem;
@@ -100,7 +100,7 @@
 }
 
 .case-card-header:hover {
-  background-color: #e2e2e2;
+  background-color: #2e2d2d;
 }
 
 .case-tabs .nav-item {

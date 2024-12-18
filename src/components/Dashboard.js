@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Navbar } from 'react-bootstrap';
+import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Navbar, Modal, Form } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import for redirect
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Dashboard.css';
 import CaseDetailsModal from './CaseDetailsModal';
@@ -18,16 +18,17 @@ const DashboardPage = ({ onLogout }) => {
     department: '',
     badgeNumber: ''
   });
-
+  const [newOfficerId, setNewOfficerId] = useState(""); 
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [showCaseModal, setShowCaseModal] = useState(false);
-  const navigate = useNavigate(); // Hook for navigation
+  const [showHandoverModal, setShowHandoverModal] = useState(false); 
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('userDetails');
     onLogout && onLogout();
-    navigate('/login'); 
+    navigate('/login');
   };
 
   const handleViewCase = (caseId) => {
@@ -50,45 +51,40 @@ const DashboardPage = ({ onLogout }) => {
         console.error('Error parsing user details:', error);
       }
     }
-
-    const fetchCases = async () => {
-      const jwtToken = localStorage.getItem('jwtToken');
-
-      if (!jwtToken) {
-        handleLogout(); // No token found, log out user
-        return;
-      }
-
-      try {
-        const tokenParts = jwtToken.split('.');
-        if (tokenParts.length !== 3) {
-          throw new Error('Invalid token format');
-        }
-
-        const response = await axios.get('http://localhost:5299/api/case/user', {
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        setCases(response.data);
-        setIsLoading(false);
-      } catch (err) {
-        if (err.response?.status === 401) {
-          localStorage.removeItem('jwtToken'); // Clear the invalid JWT token
-          navigate('/login'); // Redirect to the login page
-        } else {
-          const message =
-            err.response?.data?.message || 'Failed to fetch cases. Try again.';
-          setError(message);
-          setIsLoading(false);
-        }
-      }
-    };
-
     fetchCases();
   }, [onLogout, navigate]);
+
+  const fetchCases = async () => {
+    const jwtToken = localStorage.getItem('jwtToken');
+
+    if (!jwtToken) {
+      handleLogout(); 
+      return;
+    }
+
+    try {
+      const response = await axios.get('http://localhost:5299/api/case/user', {
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setCases(response.data);
+      console.log(response.data)
+      setIsLoading(false);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('jwtToken');
+        navigate('/login');
+      } else {
+        const message =
+          err.response?.data?.message || 'Failed to fetch cases. Try again.';
+        setError(message);
+        setIsLoading(false);
+      }
+    }
+  };
 
   const toggleCase = (caseId) => {
     setExpandedCases((prev) => ({
@@ -104,6 +100,36 @@ const DashboardPage = ({ onLogout }) => {
     (key === 'pending' && getPendingStatuses.includes(c.status)) ||
     (key === 'closed' && getSolvedStatuses.includes(c.status))
   );
+
+  const handleHandover = async (caseId) => {
+    if (!caseId || !newOfficerId) {
+      alert("Please provide a valid Case ID and Officer ID.");
+      return;
+    }
+
+    try {
+      const jwtToken = localStorage.getItem('jwtToken');
+      const response = await axios.post(
+        `http://localhost:5299/api/case/handover/${caseId}`,
+        { NewOfficerId: newOfficerId },
+        {
+          headers: {
+            'Authorization': `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      alert(response.data.message || 'Case handed over successfully.');
+      setShowHandoverModal(false);
+      fetchCases(); 
+    } catch (error) {
+      if (error.response?.data) {
+        setError(error.response.data.message || 'Error handing over the case.');
+      } else {
+        setError('Unable to connect to the server.');
+      }
+    }
+  };
 
   return (
     <div className="dashboard-wrapper">
@@ -123,17 +149,12 @@ const DashboardPage = ({ onLogout }) => {
         <div className="user-details-card mb-4">
           <div className="row">
             <div className="col-md-8">
-              <h3 className="user-name">
-                {userDetails.name || 'Officer Dashboard'}
-              </h3>
+              <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
               <div className="user-info">
                 <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
                 <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
                 <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
               </div>
-            </div>
-            <div className="col-md-4 text-end">
-              <h4 className="case-overview-title">Case Overview</h4>
             </div>
           </div>
         </div>
@@ -163,10 +184,7 @@ const DashboardPage = ({ onLogout }) => {
             ) : (
               filteredCases.map((caseItem) => (
                 <Card key={caseItem.caseId} className="case-card mb-3">
-                  <Card.Header
-                    onClick={() => toggleCase(caseItem.caseId)}
-                    className="case-card-header"
-                  >
+                  <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
                     <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
                   </Card.Header>
                   <Collapse in={expandedCases[caseItem.caseId]}>
@@ -177,8 +195,15 @@ const DashboardPage = ({ onLogout }) => {
                       <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
                       <p><strong>Status:</strong> {caseItem.status}</p>
                       <div className="d-flex justify-content-between">
-                        <button className="handover-button w-100 mx-1">Handover this case</button>
-
+                        <button
+                          className="handover-button w-100 mx-1"
+                          onClick={() => {
+                            setSelectedCaseId(caseItem.caseId);
+                            setShowHandoverModal(true);
+                          }}
+                        >
+                          Handover this case
+                        </button>
                         <button 
                           className="handover-button w-100 mx-1" 
                           onClick={() => handleViewCase(caseItem.caseId)}
@@ -192,16 +217,14 @@ const DashboardPage = ({ onLogout }) => {
               ))
             )}
           </Tab>
+
           <Tab eventKey="closed" title="Solved Cases">
             {filteredCases.length === 0 ? (
               <p className="no-cases-message">No solved cases</p>
             ) : (
               filteredCases.map((caseItem) => (
                 <Card key={caseItem.caseId} className="case-card mb-3">
-                  <Card.Header
-                    onClick={() => toggleCase(caseItem.caseId)}
-                    className="case-card-header"
-                  >
+                  <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
                     <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
                   </Card.Header>
                   <Collapse in={expandedCases[caseItem.caseId]}>
@@ -209,17 +232,7 @@ const DashboardPage = ({ onLogout }) => {
                       <p><strong>Description:</strong> {caseItem.description}</p>
                       <p><strong>Category:</strong> {caseItem.category}</p>
                       <p><strong>Severity:</strong> {caseItem.severity}</p>
-                      <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
-                      {caseItem.resolvedAt && (
-                        <p><strong>Resolved At:</strong> {new Date(caseItem.resolvedAt).toLocaleString()}</p>
-                      )}
                       <p><strong>Status:</strong> {caseItem.status}</p>
-                      <button 
-                        className="view-case-button w-100" 
-                        onClick={() => handleViewCase(caseItem.caseId)}
-                      >
-                        View Case
-                      </button>
                     </Card.Body>
                   </Collapse>
                 </Card>
@@ -227,14 +240,36 @@ const DashboardPage = ({ onLogout }) => {
             )}
           </Tab>
         </Tabs>
-
-        {/* Case Details Modal */}
-        <CaseDetailsModal 
-          caseId={selectedCaseId}
-          show={showCaseModal}
-          onHide={handleCloseCaseModal}
-        />
       </Container>
+
+      <CaseDetailsModal
+        show={showCaseModal}
+        handleClose={handleCloseCaseModal}
+        caseId={selectedCaseId}
+      />
+
+      <Modal show={showHandoverModal} onHide={() => setShowHandoverModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Handover Case</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p><small><i>Disclaimer: Handover will transfer the case to another officer. Ensure the provided Officer ID is correct.</i></small></p>
+          <Form onSubmit={(e) => { e.preventDefault(); handleHandover(selectedCaseId); }}>
+            <Form.Group controlId="officerId">
+              <Form.Label>New Officer ID</Form.Label>
+              <Form.Control
+                type="text"
+                value={newOfficerId}
+                onChange={(e) => setNewOfficerId(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Button variant="dark" type="submit" className="w-100 mt-2">
+              Handover
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

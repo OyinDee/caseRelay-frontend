@@ -5,12 +5,14 @@ import jsPDF from 'jspdf';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const CaseDetailsModal = ({ caseId, show, onHide }) => {
+  const [isUploading, setIsUploading] = useState(false);
   const [caseDetails, setCaseDetails] = useState(null);
   const [comments, setComments] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newComment, setNewComment] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (show && caseId) {
@@ -30,13 +32,6 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
       });
       setCaseDetails(caseResponse.data);
 
-      // const commentsResponse = await axios.get(`http://localhost:5299/api/case/${caseId}/comments`, {
-      //   headers: {
-      //     Authorization: `Bearer ${jwtToken}`,
-      //   },
-      // });
-      // setComments(commentsResponse.data);
-
       const caseData = await axios.get(`http://localhost:5299/api/case/${caseId}`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
@@ -44,15 +39,9 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
       });
       console.log(caseData)
       setComments(caseData.data.comments);
-
       setDocuments(caseData.data.documents || []);
       setIsLoading(false);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        console.error("AxiosError:", err.toJSON());
-      } else {
-        console.error("Unexpected error:", err);
-      }
       setError(err.response?.data?.message || "Failed to fetch case details");
       setIsLoading(false);
     }
@@ -65,11 +54,11 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
     const newCommentData = {
       commentText: newComment,
       authorId: (JSON.parse(localStorage.userDetails)).name,
-      createdAt: currentTime
+      createdAt: currentTime,
     };
 
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5299/api/case/${caseId}/comment`,
         newCommentData,
         {
@@ -81,70 +70,163 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
       setComments([...comments, newCommentData]);
       setNewComment('');
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        console.error("AxiosError:", err.toJSON());
-      } else {
-        console.error("Unexpected error:", err);
-      }
       setError(err.response?.data?.message || "Failed to add comment");
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+    const jwtToken = localStorage.getItem('jwtToken');
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    setIsUploading(true);
+    try {
+      await axios.post(`http://localhost:5299/api/case/${caseId}/document`, formData, {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setSelectedFile(null);
+      await fetchCaseDetails();
+    } catch (err) {
+      setError("Failed to upload document");
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const exportCaseReport = () => {
     if (!caseDetails) return;
 
-    const doc = new jsPDF();
-    
-    doc.setFontSize(18);
-    doc.text(`Case Report: ${caseDetails.caseNumber}`, 10, 20);
-
-    doc.setFontSize(12);
-    let yPosition = 30;
-    const addLine = (text) => {
-      doc.text(text, 10, yPosition);
-      yPosition += 10;
-    };
-
-    addLine(`Title: ${caseDetails.title}`);
-    addLine(`Description: ${caseDetails.description}`);
-    addLine(`Category: ${caseDetails.category}`);
-    addLine(`Severity: ${caseDetails.severity}`);
-    addLine(`Status: ${caseDetails.status}`);
-    addLine(`Reported At: ${new Date(caseDetails.reportedAt).toLocaleString()}`);
-    
-    if (caseDetails.resolvedAt) {
-      addLine(`Resolved At: ${new Date(caseDetails.resolvedAt).toLocaleString()}`);
-    }
-
-    yPosition += 10;
-    doc.setFontSize(14);
-    doc.text('Comments', 10, yPosition);
-    yPosition += 10;
-    doc.setFontSize(12);
-
-    comments.forEach((comment, index) => {
-      addLine(`Comment ${index + 1}: ${comment.commentText}`);
-      addLine(`By: ${comment.authorId} at ${new Date(comment.createdAt).toLocaleString()}`);
-      yPosition += 5;
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
     });
 
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 15;
+    const lineHeight = 7;
+
+    // Set up document properties
+    doc.setFont('helvetica', 'normal');
+
+    // Function to draw header
+    const drawHeader = () => {
+        // Company/Organization header (placeholder)
+        doc.setFontSize(10);
+        doc.text('OFFICIAL CASE REPORT', margin, 15, { align: 'left' });
+        
+        // Horizontal line
+        doc.setLineWidth(0.5);
+        doc.line(margin, 20, pageWidth - margin, 20);
+    };
+
+    // Function to add a line of text
+    const addLine = (text, y, options = {}) => {
+        const {
+            fontSize = 11,
+            align = 'left',
+            style = 'normal'
+        } = options;
+
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', style);
+        doc.text(text, align === 'left' ? margin : pageWidth - margin, y, { align });
+    };
+
+    // Function to add a section
+    const addSection = (title, content, startY, options = {}) => {
+        const { 
+            titleFontSize = 12, 
+            contentFontSize = 11 
+        } = options;
+
+        // Add section title
+        addLine(title, startY, { 
+            fontSize: titleFontSize, 
+            style: 'bold' 
+        });
+        let currentY = startY + lineHeight;
+
+        // Add content lines
+        content.forEach(item => {
+            if (!item) return; // Skip empty items
+            const lines = doc.splitTextToSize(item, pageWidth - (2 * margin));
+            lines.forEach(line => {
+                addLine(line, currentY, { fontSize: contentFontSize });
+                currentY += lineHeight;
+            });
+        });
+
+        return currentY + lineHeight;
+    };
+
+    // Function to add footer
+    const addFooter = (exporterName) => {
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            
+            // Page number
+            doc.setFontSize(10);
+            doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - margin, { align: 'center' });
+            
+            // Horizontal line
+            doc.setLineWidth(0.5);
+            doc.line(margin, pageHeight - (margin + 10), pageWidth - margin, pageHeight - (margin + 10));
+            
+            // Exported by
+            if (i === pageCount) {
+                doc.text(`Exported by: ${exporterName}`, margin, pageHeight - margin, { align: 'left' });
+            }
+        }
+    };
+
+    // Start PDF generation
+    drawHeader();
+
+    // Case Information Section
+    let yPosition = addSection('Case Information', [
+        `Case Number: ${caseDetails.caseNumber}`,
+        `Title: ${caseDetails.title}`,
+        `Description: ${caseDetails.description}`,
+        `Category: ${caseDetails.category}`,
+        `Severity: ${caseDetails.severity}`,
+        `Status: ${caseDetails.status}`,
+        `Reported At: ${new Date(caseDetails.reportedAt).toLocaleString()}`,
+        caseDetails.resolvedAt ? `Resolved At: ${new Date(caseDetails.resolvedAt).toLocaleString()}` : ''
+    ], 30);
+
+    // Comments Section
+    yPosition = addSection('Comments', comments.map((comment, index) => 
+        `${index + 1}. ${comment.commentText} (By: ${comment.authorId} at ${new Date(comment.createdAt).toLocaleString()})`
+    ), yPosition);
+
+    // Documents Section
+    yPosition = addSection('Attached Documents', documents.map((doc, index) => 
+        `${index + 1}. ${doc.fileUrl} (Uploaded at: ${new Date(doc.uploadedAt).toLocaleString()})`
+    ), yPosition);
+
+    // Add footer with exporter name
+    const exporterName = JSON.parse(localStorage.userDetails).name;
+    addFooter(exporterName);
+
+    // Save the document
     doc.save(`Case_${caseDetails.caseNumber}_Report.pdf`);
-  };
+};
+  
+  
 
   return (
-    <Modal 
-      show={show} 
-      onHide={onHide} 
-      size="lg" 
-      aria-labelledby="case-details-modal"
-      centered
-    >
+    <Modal show={show} onHide={onHide} size="lg" centered>
       <Modal.Header closeButton>
-        <Modal.Title id="case-details-modal">
-          Case Details: {caseDetails?.caseNumber}
-        </Modal.Title>
+        <Modal.Title>Case Details: {caseDetails?.caseNumber}</Modal.Title>
       </Modal.Header>
-      
+
       <Modal.Body>
         {isLoading ? (
           <div className="text-center">
@@ -198,15 +280,15 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
                 <div className="mt-3">
                   <h6>Add a Comment</h6>
                   <div className="d-flex">
-                    <input 
-                      type="text" 
-                      className="form-control mr-2" 
+                    <input
+                      type="text"
+                      className="form-control mr-2"
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Enter your comment"
                     />
-                    <Button 
-                      variant="dark" 
+                    <Button
+                      variant="dark"
                       onClick={handleAddComment}
                       disabled={!newComment.trim()}
                       className="ml-2"
@@ -238,8 +320,8 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
                           <td>{doc.fileName}</td>
                           <td>{new Date(doc.uploadedAt).toLocaleString()}</td>
                           <td>
-                            <Button 
-                              variant="outline-primary" 
+                            <Button
+                              variant="outline-dark"
                               size="sm"
                               onClick={() => window.open(doc.fileUrl, '_blank')}
                             >
@@ -251,21 +333,46 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
                     </tbody>
                   </Table>
                 )}
+
+                <div className="mt-3">
+                  <input
+                    type="file"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                  />
+            <Button
+              variant="dark"
+              onClick={handleFileUpload}
+              disabled={!selectedFile || isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="mr-2"
+                  />
+                  Uploading...
+                </>
+              ) : (
+                'Upload Document'
+              )}
+            </Button>
+
+                </div>
               </Card.Body>
             </Card>
           </>
         )}
       </Modal.Body>
-      
+
       <Modal.Footer>
         <Button variant="secondary" onClick={onHide}>
           Close
         </Button>
-        <Button 
-          variant="primary" 
-          onClick={exportCaseReport}
-          disabled={isLoading || error}
-        >
+        <Button variant="dark" onClick={exportCaseReport}>
           Export Case Report
         </Button>
       </Modal.Footer>

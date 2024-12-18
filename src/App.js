@@ -11,6 +11,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import SignupPage from './components/SignupPage';
 import DashboardPage from './components/Dashboard';
 
+import ResetPasswordPage from './components/ResetPassword'
 function App() {
   return (
     <Router>
@@ -20,8 +21,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-
           <Route path='/dashboard' element={<DashboardPage/>}/>
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<NotFoundPage />} />
 
         </Routes>
