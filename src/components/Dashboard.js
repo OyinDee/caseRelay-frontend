@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Dashboard.css';
 import CaseDetailsModal from './CaseDetailsModal';
+import SearchBar from './SearchBar';
 
 const DashboardPage = ({ onLogout }) => {
   const [key, setKey] = useState('pending');
@@ -22,6 +23,13 @@ const DashboardPage = ({ onLogout }) => {
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [showCaseModal, setShowCaseModal] = useState(false);
   const [showHandoverModal, setShowHandoverModal] = useState(false); 
+  const [showCreateCaseModal, setShowCreateCaseModal] = useState(false);
+  const [newCase, setNewCase] = useState({
+    title: '',
+    description: '',
+    category: '',
+    severity: ''
+  });
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -131,6 +139,32 @@ const DashboardPage = ({ onLogout }) => {
     }
   };
 
+  const handleSearchResults = (results) => {
+    setCases(results);
+  };
+
+  const handleCreateCase = async (e) => {
+    e.preventDefault();
+    try {
+      const jwtToken = localStorage.getItem('jwtToken');
+      await axios.post(
+        'https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case',
+        newCase,
+        {
+          headers: {
+            'Authorization': `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setShowCreateCaseModal(false);
+      fetchCases();
+      setNewCase({ title: '', description: '', category: '', severity: '' });
+    } catch (error) {
+      setError('Failed to create case');
+    }
+  };
+
   return (
     <div className="dashboard-wrapper">
       <Navbar bg="dark" variant="dark" className="dashboard-navbar">
@@ -146,6 +180,15 @@ const DashboardPage = ({ onLogout }) => {
       </Navbar>
 
       <Container className="dashboard-container">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <SearchBar onSearchResults={handleSearchResults} />
+          <Button 
+            variant="dark" 
+            onClick={() => setShowCreateCaseModal(true)}
+          >
+            Create New Case
+          </Button>
+        </div>
         <div className="user-details-card mb-4">
           <div className="row">
             <div className="col-md-8">
@@ -266,6 +309,66 @@ const DashboardPage = ({ onLogout }) => {
             </Form.Group>
             <Button variant="dark" type="submit" className="w-100 mt-2">
               Handover
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showCreateCaseModal} onHide={() => setShowCreateCaseModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Create New Case</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleCreateCase}>
+            <Form.Group className="mb-3">
+              <Form.Label>Title</Form.Label>
+              <Form.Control
+                type="text"
+                value={newCase.title}
+                onChange={(e) => setNewCase({...newCase, title: e.target.value})}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={newCase.description}
+                onChange={(e) => setNewCase({...newCase, description: e.target.value})}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={newCase.category}
+                onChange={(e) => setNewCase({...newCase, category: e.target.value})}
+                required
+              >
+                <option value="">Select category...</option>
+                <option value="Theft">Theft</option>
+                <option value="Assault">Assault</option>
+                <option value="Fraud">Fraud</option>
+                <option value="Other">Other</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Severity</Form.Label>
+              <Form.Select
+                value={newCase.severity}
+                onChange={(e) => setNewCase({...newCase, severity: e.target.value})}
+                required
+              >
+                <option value="">Select severity...</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </Form.Select>
+            </Form.Group>
+            <Button variant="dark" type="submit" className="w-100">
+              Create Case
             </Button>
           </Form>
         </Modal.Body>

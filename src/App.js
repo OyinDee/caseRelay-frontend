@@ -10,8 +10,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import SignupPage from './components/SignupPage';
 import DashboardPage from './components/Dashboard';
+import ResetPasswordPage from './components/ResetPassword';
+import AdminDashboardPage from './components/AdminDashboard';
+import ProtectedAdminRoute from './components/ProtectedRoute';
 
-import ResetPasswordPage from './components/ResetPassword'
 function App() {
   return (
     <Router>
@@ -23,8 +25,15 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path='/dashboard' element={<DashboardPage/>}/>
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route 
+            path='/admin-dashboard' 
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboardPage />
+              </ProtectedAdminRoute>
+            }
+          />
           <Route path="*" element={<NotFoundPage />} />
-
         </Routes>
         <Footer />
       </div>
