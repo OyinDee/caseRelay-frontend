@@ -4,7 +4,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const CaseDetailsModal = ({ caseId, show, onHide }) => {
+const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide to handleClose
   const [isUploading, setIsUploading] = useState(false);
   const [caseDetails, setCaseDetails] = useState(null);
   const [comments, setComments] = useState([]);
@@ -25,14 +25,14 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
     const jwtToken = localStorage.getItem('jwtToken');
 
     try {
-      const caseResponse = await axios.get(`http://localhost:5299/api/case/${caseId}/extras`, {
+      const caseResponse = await axios.get(`https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}/extras`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
       });
       setCaseDetails(caseResponse.data);
 
-      const caseData = await axios.get(`http://localhost:5299/api/case/${caseId}`, {
+      const caseData = await axios.get(`https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
@@ -59,7 +59,7 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
 
     try {
       await axios.post(
-        `http://localhost:5299/api/case/${caseId}/comment`,
+        `https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}/comment`,
         newCommentData,
         {
           headers: {
@@ -82,7 +82,7 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
 
     setIsUploading(true);
     try {
-      await axios.post(`http://localhost:5299/api/case/${caseId}/document`, formData, {
+      await axios.post(`https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}/document`, formData, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
           'Content-Type': 'multipart/form-data',
@@ -222,7 +222,13 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
   
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal 
+      show={show} 
+      onHide={handleClose}  // Changed from onHide to handleClose
+      size="lg" 
+      centered
+      scrollable  // Add this to make modal content scrollable
+    >
       <Modal.Header closeButton>
         <Modal.Title>Case Details: {caseDetails?.caseNumber}</Modal.Title>
       </Modal.Header>
@@ -369,7 +375,7 @@ const CaseDetailsModal = ({ caseId, show, onHide }) => {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+        <Button variant="secondary" onClick={handleClose}>  // Changed from onHide
           Close
         </Button>
         <Button variant="dark" onClick={exportCaseReport}>

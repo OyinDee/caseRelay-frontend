@@ -57,7 +57,7 @@ const LoginPage = () => {
     setForgotPasswordSuccess("");
     setErrorMessage("");
     try {
-      const response = await axios.post("http://localhost:5299/api/auth/forgot-password", {
+      const response = await axios.post("https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/auth/forgot-password", {
         email: forgotPasswordEmail,
       });
       console.log(response)

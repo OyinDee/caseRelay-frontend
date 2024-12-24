@@ -63,7 +63,7 @@ const DashboardPage = ({ onLogout }) => {
     }
 
     try {
-      const response = await axios.get('http://localhost:5299/api/case/user', {
+      const response = await axios.get('https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/user', {
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
           'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ const DashboardPage = ({ onLogout }) => {
     try {
       const jwtToken = localStorage.getItem('jwtToken');
       const response = await axios.post(
-        `http://localhost:5299/api/case/handover/${caseId}`,
+        `https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/handover/${caseId}`,
         { NewOfficerId: newOfficerId },
         {
           headers: {

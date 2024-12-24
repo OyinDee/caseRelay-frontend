@@ -34,7 +34,7 @@ const ResetPassword = () => {
       }
 
       // Send request to reset password
-      const response = await axios.post("http://localhost:5299/api/auth/reset-password", {
+      const response = await axios.post("https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/auth/reset-password", {
         Email: email,  // Include email here
         ResetToken: resetToken,  // Include reset token here
         NewPasscode: newPassword  // New password (passcode)
