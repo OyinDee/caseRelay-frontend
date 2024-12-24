@@ -1,246 +1,164 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './css/Header.css';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState('');
   const navigate = useNavigate();
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  const closeMenu = () => {
-    setMenuOpen(false);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('jwtToken');
-    setIsLoggedIn(false);
-    closeMenu();
-    navigate('/');
-  };
+  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('jwtToken');
+    const userDetails = JSON.parse(localStorage.getItem('userDetails') || '{}');
     setIsLoggedIn(!!token);
+    setUserRole(userDetails.role || '');
 
     const handleScroll = () => {
-      const offset = window.scrollY;
-      setScrolled(offset > 50);
+      setScrolled(window.scrollY > 50);
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('userDetails');
+    setIsLoggedIn(false);
+    setUserRole('');
+    setMenuOpen(false);
+    navigate('/');
+  };
+
+  const isActiveRoute = (path) => location.pathname === path;
 
   return (
-    <header 
-      className={`case-relay-header bg-black ${scrolled ? 'scrolled' : ''}`}
-      style={{ 
-        transition: 'all 0.3s ease',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1030
-      }}
-    >
-      <div className="container d-flex justify-content-between align-items-center py-2">
-        {/* Logo */}
-        <div className="d-flex align-items-center">
-          <Link 
-            to="/" 
-            className="navbar-brand text-white d-flex align-items-center"
-            style={{ fontWeight: 600, textDecoration: 'none' }}
-          >
-            <span className="logo-icon me-2">🔍</span>
-            CaseRelay
-          </Link>
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <button
-          className="navbar-toggler d-md-none text-white border-0 menu-toggle"
-          type="button"
-          onClick={toggleMenu}
-          aria-label="Toggle navigation"
-          style={{
-            background: 'none',
-            fontSize: "1.5rem",
-            cursor: "pointer",
-          }}
-        >
-          {menuOpen ? "✖" : "☰"}
-        </button>
+    <header className={`case-relay-header ${scrolled ? 'scrolled' : ''}`}>
+      <div className="container-fluid header-container">
+        {/* Logo Section */}
+        <Link to="/" className="header-logo">
+          <span className="logo-icon">🔍</span>
+          <span className="logo-text">CaseRelay</span>
+        </Link>
 
         {/* Desktop Navigation */}
-        <nav className="d-none d-md-block">
-          <ul className="nav flex-row align-items-center">
-            <li className="nav-item">
-              <Link 
-                className="nav-link text-white nav-hover" 
-                to="/" 
-                onClick={closeMenu}
-              >
-                Home
-              </Link>
-            </li>
-            {!isLoggedIn ? (
-              <>
-            <li className="nav-item">
-              <a 
-                className="nav-link text-white nav-hover" 
-                href="#features" 
-                onClick={closeMenu}
-              >
-                Features
-              </a>
-            </li>
-                <li className="nav-item">
-                  <Link 
-                    className="nav-link text-white nav-hover ms-3 text-bold bold" 
-                    to="/login" 
-                    onClick={closeMenu}
-                    style={{
-                      borderRadius: '20px',
-                      padding: '6px 16px'
-                    }}
-                  >
-                    Login
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link 
-                    className="nav-link text-white nav-hover ms-3 text-bold bold" 
-                    to="/signup" 
-                    onClick={closeMenu}
-                    style={{
-                      borderRadius: '20px',
-                      padding: '6px 16px'
-                    }}
-                  >
-                    Sign Up
-                  </Link>
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="nav-item">
-                  <Link 
-                    className="nav-link text-white nav-hover" 
-                    to="/dashboard" 
-                    onClick={closeMenu}
-                  >
-                    Dashboard
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <button 
-                    className="nav-link text-white nav-hover ms-3 text-bold bold"
-                    onClick={handleLogout}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      borderRadius: '20px',
-                      padding: '6px 16px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Logout
-                  </button>
-                </li>
-              </>
-            )}
-          </ul>
-        </nav>
-      </div>
-
-      {/* Mobile Navigation Dropdown */}
-      <div 
-        className={`mobile-menu ${menuOpen ? 'open' : ''} d-md-none`}
-        style={{
-          position: 'fixed',
-          top: '60px',
-          left: 0,
-          right: 0,
-          backgroundColor: '#000000', 
-          zIndex: 1020,
-        }}
-      >
-        <ul className="nav flex-column text-center">
-          <li className="nav-item">
-            <Link 
-              className="nav-link text-white py-3" 
-              to="/" 
-              onClick={closeMenu}
-            >
-              Home
-            </Link>
-          </li>
-
-          {!isLoggedIn ? (
-            <>
-              <li className="nav-item">
+        <nav className="desktop-nav">
+          {isLoggedIn ? (
+            <ul className="nav-links">
+              <li>
                 <Link 
-                  className="nav-link text-white py-3" 
-                  to="/#features" 
-                  onClick={closeMenu}
+                  to="/" 
+                  className={`nav-link ${isActiveRoute('/') ? 'active' : ''}`}
                 >
-                  Features
-                </Link>
-          </li>
-              <li className="nav-item">
-                <Link 
-                  className="nav-link text-white py-3" 
-                  to="/login" 
-                  onClick={closeMenu}
-                >
-                  Login
+                  Home
                 </Link>
               </li>
-              <li className="nav-item">
+              <li>
                 <Link 
-                  className="nav-link text-white py-3" 
-                  to="/signup" 
-                  onClick={closeMenu}
-                >
-                  Sign Up
-                </Link>
-              </li>
-            </>
-          ) : (
-            <>
-              <li className="nav-item">
-                <Link 
-                  className="nav-link text-white py-3" 
                   to="/dashboard" 
-                  onClick={closeMenu}
+                  className={`nav-link ${isActiveRoute('/dashboard') ? 'active' : ''}`}
                 >
                   Dashboard
                 </Link>
               </li>
-              <li className="nav-item">
+              {userRole === 'Admin' && (
+                <li>
+                  <Link 
+                    to="/admin-dashboard" 
+                    className={`nav-link ${isActiveRoute('/admin-dashboard') ? 'active' : ''}`}
+                  >
+                    Admin
+                  </Link>
+                </li>
+              )}
+              <li>
                 <button 
-                  className="nav-link text-white py-3"
                   onClick={handleLogout}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    width: '100%',
-                    cursor: 'pointer'
-                  }}
+                  className="logout-button"
                 >
                   Logout
                 </button>
               </li>
-            </>
+            </ul>
+          ) : (
+            <ul className="nav-links">
+              <li>
+                <Link to="/" className={`nav-link ${isActiveRoute('/') ? 'active' : ''}`}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="nav-link login-btn">
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link to="/signup" className="nav-link signup-btn">
+                  Sign Up
+                </Link>
+              </li>
+            </ul>
           )}
-        </ul>
+        </nav>
+
+        {/* Mobile Menu Button */}
+        <button 
+          className="mobile-menu-btn"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? '✖' : '☰'}
+        </button>
+
+        {/* Mobile Navigation */}
+        <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
+          {isLoggedIn ? (
+            <ul className="mobile-nav-links">
+              <li>
+                <Link to="/" onClick={() => setMenuOpen(false)}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
+                  Dashboard
+                </Link>
+              </li>
+              {userRole === 'Admin' && (
+                <li>
+                  <Link to="/admin-dashboard" onClick={() => setMenuOpen(false)}>
+                    Admin
+                  </Link>
+                </li>
+              )}
+              <li>
+                <button onClick={handleLogout}>
+                  Logout
+                </button>
+              </li>
+            </ul>
+          ) : (
+            <ul className="mobile-nav-links">
+              <li>
+                <Link to="/" onClick={() => setMenuOpen(false)}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" onClick={() => setMenuOpen(false)}>
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link to="/signup" onClick={() => setMenuOpen(false)}>
+                  Sign Up
+                </Link>
+              </li>
+            </ul>
+          )}
+        </div>
       </div>
     </header>
   );
