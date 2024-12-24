@@ -108,6 +108,7 @@ const Header = () => {
         <button 
           className="mobile-menu-btn"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
         >
           {menuOpen ? '✖' : '☰'}
         </button>
