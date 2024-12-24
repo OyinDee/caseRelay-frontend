@@ -27,7 +27,7 @@ const LoginPage = () => {
     setLoading(true);
     setErrorMessage("");
     try {
-      const response = await axios.post("http://localhost:5299/api/auth/login", {
+      const response = await axios.post("https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/auth/login", {
         policeId,
         passcode,
         rank,
