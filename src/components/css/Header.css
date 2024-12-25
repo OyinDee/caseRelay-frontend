@@ -79,6 +79,20 @@
   gap: 2rem;
 }
 
+.nav-links li a,
+.nav-links li button {
+  color: white !important; /* Force white color */
+  text-decoration: none;
+  font-weight: 500;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.nav-links li a:hover,
+.nav-links li button:hover {
+  opacity: 1;
+}
+
 .nav-link {
   color: white;
   text-decoration: none;
@@ -146,7 +160,7 @@
 }
 
 .mobile-menu-btn {
-  display: none;
+  display: none; /* Hide by default */
   background: none;
   border: none;
   color: white;
@@ -182,7 +196,7 @@
   }
 
   .mobile-menu-btn {
-    display: block;
+    display: flex; /* Only show on mobile */
   }
 
   .mobile-menu {
