@@ -32,7 +32,7 @@
   max-width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  margin-top: 5rem; /* Add this line */
+  margin-top: 10rem; /* Add this line */
 }
 
 .user-details-card {

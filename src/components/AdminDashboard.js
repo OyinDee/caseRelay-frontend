@@ -45,7 +45,7 @@ const AdminDashboardPage = () => {
     try {
       const decodedToken = jwtDecode(token);
       if (!decodedToken || decodedToken.role !== 'Admin') {
-        navigate('/dashboard');
+        // navigate('/dashboard');
         return;
       }
       console.log(decodedToken)
