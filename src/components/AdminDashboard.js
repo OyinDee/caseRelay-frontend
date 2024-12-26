@@ -48,6 +48,7 @@ const AdminDashboardPage = () => {
         navigate('/dashboard');
         return;
       }
+      console.log(decodedToken)
       fetchData();
       fetchStats();
     } catch (error) {
