@@ -16,7 +16,7 @@ const SearchBar = ({ onSearchResults }) => {
     try {
       const token = localStorage.getItem('jwtToken');
       const response = await axios.get(
-        `https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/Case/search`, {
+        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/Case/search`, {
           params: { keyword },
           headers: {
             'Authorization': `Bearer ${token}`,

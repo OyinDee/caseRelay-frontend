@@ -25,14 +25,14 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
     const jwtToken = localStorage.getItem('jwtToken');
 
     try {
-      const caseResponse = await axios.get(`https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}/extras`, {
+      const caseResponse = await axios.get(`https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}/extras`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
       });
       setCaseDetails(caseResponse.data);
 
-      const caseData = await axios.get(`https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}`, {
+      const caseData = await axios.get(`https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
@@ -59,7 +59,7 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
 
     try {
       await axios.post(
-        `https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}/comment`,
+        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}/comment`,
         newCommentData,
         {
           headers: {
@@ -82,7 +82,7 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
 
     setIsUploading(true);
     try {
-      await axios.post(`https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/${caseId}/document`, formData, {
+      await axios.post(`https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}/document`, formData, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
           'Content-Type': 'multipart/form-data',

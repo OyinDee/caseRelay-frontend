@@ -15,7 +15,7 @@ const AdminDashboardPage = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
-  const API_BASE_URL = 'https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api';
+  const API_BASE_URL = 'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api';
 
   useEffect(() => {
     fetchData();

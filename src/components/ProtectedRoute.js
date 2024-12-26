@@ -17,7 +17,7 @@ const ProtectedAdminRoute = ({ children }) => {
 
       try {
         const response = await axios.get(
-          'https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/User/profile',
+          'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/User/profile',
           {
             headers: {
               'Authorization': `Bearer ${token}`,
