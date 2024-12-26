@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { Search as SearchIcon } from 'lucide-react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { toast } from 'react-toastify';
 import './css/SearchBar.css';
+import { api } from '../config/api';
 
 const SearchBar = ({ onSearchResults }) => {
   const [keyword, setKeyword] = useState('');
@@ -14,19 +16,16 @@ const SearchBar = ({ onSearchResults }) => {
 
     setIsSearching(true);
     try {
-      const token = localStorage.getItem('jwtToken');
-      const response = await axios.get(
-        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/Case/search`, {
-          params: { keyword },
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await api.get('/case/search', {
+        params: { keyword }
+      });
       onSearchResults(response.data);
     } catch (error) {
-      console.error('Search failed:', error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || 'Search failed');
+      } else {
+        toast.error('An unexpected error occurred');
+      }
     } finally {
       setIsSearching(false);
     }
@@ -48,7 +47,11 @@ const SearchBar = ({ onSearchResults }) => {
           disabled={isSearching}
           className="search-button"
         >
-          <SearchIcon size={20} />
+          {isSearching ? (
+            <span className="spinner-border spinner-border-sm" />
+          ) : (
+            <SearchIcon size={20} />
+          )}
         </Button>
       </InputGroup>
     </Form>

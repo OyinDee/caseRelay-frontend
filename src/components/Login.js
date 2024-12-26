@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { ToastContainer, toast } from 'react-toastify';
 import "bootstrap/dist/css/bootstrap.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.css";
 
 const LoginPage = () => {
   const [policeId, setPoliceId] = useState("");
   const [passcode, setPasscode] = useState("");
   const [rank, setRank] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
@@ -25,7 +25,6 @@ const LoginPage = () => {
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setErrorMessage("");
     try {
       const response = await axios.post("https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/auth/login", {
         policeId,
@@ -40,12 +39,13 @@ const LoginPage = () => {
       );
       localStorage.setItem("jwtToken", token);
 
+      toast.success("Login successful!");
       window.location.href = "/dashboard";
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.data) {
-        setErrorMessage(error.response.data.message || "An error occurred during login.");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "An error occurred during login.");
       } else {
-        setErrorMessage("Unable to connect to the server. Please try again.");
+        toast.error("Unable to connect to the server. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -54,25 +54,34 @@ const LoginPage = () => {
 
   const handleForgotPasswordSubmit = async (event) => {
     event.preventDefault();
-    setForgotPasswordSuccess("");
-    setErrorMessage("");
     try {
       const response = await axios.post("https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/auth/forgot-password", {
         email: forgotPasswordEmail,
       });
-      console.log(response)
-      setForgotPasswordSuccess(response.data.message);
+      toast.success(response.data.message);
+      setShowForgotPassword(false);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
-        setErrorMessage(error.response.data.message || "Error while processing request.");
+        toast.error(error.response.data.message || "Error while processing request.");
       } else {
-        setErrorMessage("Unable to connect to the server.");
+        toast.error("Unable to connect to the server.");
       }
     }
   };
 
   return (
     <div className="login-container">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-4">
@@ -81,11 +90,6 @@ const LoginPage = () => {
                 <h3 className="text-center font-weight-light my-4">CaseRelay Login</h3>
               </div>
               <div className="card-body">
-                {errorMessage && (
-                  <div className="alert alert-danger text-center" role="alert">
-                    {errorMessage}
-                  </div>
-                )}
                 <form onSubmit={handleLogin}>
                   <div className="form-floating mb-3">
                     <input
@@ -164,17 +168,6 @@ const LoginPage = () => {
               />
               <label htmlFor="forgotPasswordEmail">Email Address</label>
             </div>
-
-            {errorMessage && (
-              <div className="alert alert-danger text-center" role="alert">
-                {errorMessage}
-              </div>
-            )}
-            {forgotPasswordSuccess && (
-              <div className="alert alert-success text-center" role="alert">
-                {forgotPasswordSuccess}
-              </div>
-            )}
 
             <div className="d-grid">
               <button

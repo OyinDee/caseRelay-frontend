@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Tabs, Tab, Card, Button, Table, Modal, Form, Alert, Spinner } from 'react-bootstrap';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; 
 import './css/AdminDashboard.css';
 import SearchBar from './SearchBar';
+import { toast } from 'react-toastify';
+import { api } from '../config/api';
 
 const AdminDashboardPage = () => {
   const [key, setKey] = useState('cases');
   const [cases, setCases] = useState([]);
   const [users, setUsers] = useState([]);
-  const [statistics, setStatistics] = useState(null);
+  const [statistics, setStatistics] = useState({
+    totalCases: 0,
+    openCases: 0,
+    closedCases: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -17,9 +24,37 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const API_BASE_URL = 'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api';
 
+  const [stats, setStats] = useState(null);
+
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/case/statistics');
+      setStats(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch statistics');
+    }
+  };
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    const token = localStorage.getItem('jwtToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const decodedToken = jwtDecode(token);
+      if (!decodedToken || decodedToken.role !== 'Admin') {
+        navigate('/dashboard');
+        return;
+      }
+      fetchData();
+      fetchStats();
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const fetchData = async () => {
     try {
@@ -43,7 +78,11 @@ const AdminDashboardPage = () => {
       setStatistics(statsResponse.data);
       setIsLoading(false);
     } catch (err) {
-      setError(err.message);
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
       setIsLoading(false);
     }
   };
@@ -57,10 +96,10 @@ const AdminDashboardPage = () => {
           'Content-Type': 'application/json'
         }
       });
-      alert('User promoted to admin successfully');
+      toast.success('User promoted to admin successfully');
       fetchData();
     } catch (error) {
-      setError(error.message);
+      toast.error(error.response?.data?.message || 'Failed to promote user');
     }
   };
 
@@ -89,10 +128,10 @@ const AdminDashboardPage = () => {
             'Authorization': `Bearer ${token}`
           }
         });
-        alert('User deleted successfully');
+        toast.success('User deleted successfully');
         fetchData();
       } catch (error) {
-        setError(error.message);
+        toast.error(error.response?.data?.message || 'Failed to delete user');
       }
     }
   };
@@ -110,10 +149,10 @@ const AdminDashboardPage = () => {
           }
         }
       );
-      alert('Case approved successfully');
+      toast.success('Case approved successfully');
       fetchData();
     } catch (error) {
-      setError('Failed to approve case');
+      toast.error('Failed to approve case');
     }
   };
 
@@ -134,7 +173,7 @@ const AdminDashboardPage = () => {
     <div className="admin-dashboard">
       <Container>
         <h1 className="admin-title">Admin Dashboard</h1>
-        <Tabs activeKey={key} onSelect={(k) => setKey(k)} className="mb-4">
+        <Tabs activeKey={key} onSelect={(k) => setKey(k)} className="mb-4 custom-tabs">
           <Tab eventKey="cases" title="All Cases">
             <SearchBar onSearchResults={handleSearchResults} />
             <Table striped bordered hover>
@@ -212,15 +251,33 @@ const AdminDashboardPage = () => {
           </Tab>
           
           <Tab eventKey="statistics" title="Statistics">
-            {statistics && (
-              <div className="statistics-container">
+            {isLoading ? (
+              <div className="text-center">
+                <Spinner animation="border" variant="dark" />
+                <p>Loading statistics...</p>
+              </div>
+            ) : (
+              <div className="statistics-grid">
                 <Card className="stat-card">
                   <Card.Body>
                     <Card.Title>Total Cases</Card.Title>
-                    <Card.Text>{statistics.totalCases}</Card.Text>
+                    <Card.Text className="stat-number">{statistics.totalCases}</Card.Text>
                   </Card.Body>
                 </Card>
-                {/* Add more statistics cards as needed */}
+
+                <Card className="stat-card">
+                  <Card.Body>
+                    <Card.Title>Open Cases</Card.Title>
+                    <Card.Text className="stat-number">{statistics.openCases}</Card.Text>
+                  </Card.Body>
+                </Card>
+
+                <Card className="stat-card">
+                  <Card.Body>
+                    <Card.Title>Closed Cases</Card.Title>
+                    <Card.Text className="stat-number">{statistics.closedCases}</Card.Text>
+                  </Card.Body>
+                </Card>
               </div>
             )}
           </Tab>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { toast } from 'react-toastify';
 
 const SignupPage = () => {
   const [loading, setLoading] = useState(false);
@@ -30,14 +31,15 @@ const SignupPage = () => {
 
     try {
       await axios.post('https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/auth/register', data);
-      setLoading(false);
+      toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.data) {
-        setErrorMessage(error.response.data.message || 'An error occurred during signup.');
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "An error occurred during signup.");
       } else {
-        setErrorMessage('Unable to connect to the server. Please try again.');
+        toast.error("Unable to connect to the server. Please try again.");
       }
+    } finally {
       setLoading(false);
     }
   };
