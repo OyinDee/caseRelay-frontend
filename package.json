@@ -10,12 +10,14 @@
     "bootstrap-icons": "^1.11.3",
     "cra-template-pwa": "2.0.0",
     "jspdf": "^2.5.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.6",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.2",
     "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.2",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

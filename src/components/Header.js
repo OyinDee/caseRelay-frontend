@@ -7,6 +7,7 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState('');
+  const [isNavigating, setIsNavigating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,6 +32,12 @@ const Header = () => {
     setUserRole('');
     setMenuOpen(false);
     navigate('/');
+  };
+
+  const handleNavigation = (path) => {
+    setIsNavigating(true);
+    navigate(path);
+    setIsNavigating(false);
   };
 
   const isActiveRoute = (path) => location.pathname === path;
@@ -161,6 +168,11 @@ const Header = () => {
           )}
         </div>
       </div>
+      {isNavigating && (
+        <div className="navigation-loader">
+          <div className="loader-line"></div>
+        </div>
+      )}
     </header>
   );
 };

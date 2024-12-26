@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Navbar, Modal, Form } from 'react-bootstrap';
-import axios from 'axios';
+import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Modal, Form } from 'react-bootstrap';
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Dashboard.css';
 import CaseDetailsModal from './CaseDetailsModal';
 import SearchBar from './SearchBar';
+import { toast } from 'react-toastify';
+import { api } from '../config/api';
 
 const DashboardPage = ({ onLogout }) => {
   const [key, setKey] = useState('pending');
@@ -28,7 +30,8 @@ const DashboardPage = ({ onLogout }) => {
     title: '',
     description: '',
     category: '',
-    severity: ''
+    severity: '',
+    evidenceFiles: null,
   });
   const navigate = useNavigate();
 
@@ -82,15 +85,18 @@ const DashboardPage = ({ onLogout }) => {
       console.log(response.data)
       setIsLoading(false);
     } catch (err) {
-      if (err.response?.status === 401) {
-        localStorage.removeItem('jwtToken');
-        navigate('/login');
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 401) {
+          localStorage.removeItem('jwtToken');
+          navigate('/login');
+        } else {
+          const message = err.response?.data?.message || 'Failed to fetch cases. Try again.';
+          setError(message);
+        }
       } else {
-        const message =
-          err.response?.data?.message || 'Failed to fetch cases. Try again.';
-        setError(message);
-        setIsLoading(false);
+        setError('An unexpected error occurred');
       }
+      setIsLoading(false);
     }
   };
 
@@ -111,7 +117,7 @@ const DashboardPage = ({ onLogout }) => {
 
   const handleHandover = async (caseId) => {
     if (!caseId || !newOfficerId) {
-      alert("Please provide a valid Case ID and Officer ID.");
+      toast.error("Please provide a valid Case ID and Officer ID.");
       return;
     }
 
@@ -127,15 +133,11 @@ const DashboardPage = ({ onLogout }) => {
           },
         }
       );
-      alert(response.data.message || 'Case handed over successfully.');
+      toast.success(response.data.message || 'Case handed over successfully.');
       setShowHandoverModal(false);
       fetchCases(); 
     } catch (error) {
-      if (error.response?.data) {
-        setError(error.response.data.message || 'Error handing over the case.');
-      } else {
-        setError('Unable to connect to the server.');
-      }
+      toast.error(error.response?.data?.message || 'Error handing over the case.');
     }
   };
 
@@ -146,39 +148,38 @@ const DashboardPage = ({ onLogout }) => {
   const handleCreateCase = async (e) => {
     e.preventDefault();
     try {
-      const jwtToken = localStorage.getItem('jwtToken');
-      await axios.post(
-        'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case',
-        newCase,
-        {
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const formData = new FormData();
+      Object.keys(newCase).forEach(key => {
+        if (newCase[key]) formData.append(key, newCase[key]);
+      });
+
+      await api.post('/case', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success('Case created successfully!');
       setShowCreateCaseModal(false);
       fetchCases();
-      setNewCase({ title: '', description: '', category: '', severity: '' });
     } catch (error) {
-      setError('Failed to create case');
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || 'Failed to create case');
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+    }
+  };
+
+  const handleUpdateCaseStatus = async (caseId, status) => {
+    try {
+      await api.patch(`/case/${caseId}/status`, { status });
+      toast.success('Case status updated successfully');
+      fetchCases();
+    } catch (error) {
+      toast.error('Failed to update case status');
     }
   };
 
   return (
     <div className="dashboard-wrapper">
-      <Navbar bg="dark" variant="dark" className="dashboard-navbar">
-        <Container>
-          <Navbar.Brand className="dashboard-brand">Case Management System</Navbar.Brand>
-          <Navbar.Toggle />
-          <Navbar.Collapse className="justify-content-end">
-            <Button variant="outline-light" onClick={handleLogout} className="logout-btn">
-              Logout
-            </Button>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-
       <Container className="dashboard-container">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <SearchBar onSearchResults={handleSearchResults} />
@@ -189,6 +190,7 @@ const DashboardPage = ({ onLogout }) => {
             Create New Case
           </Button>
         </div>
+        
         <div className="user-details-card mb-4">
           <div className="row">
             <div className="col-md-8">
@@ -203,9 +205,13 @@ const DashboardPage = ({ onLogout }) => {
         </div>
 
         {isLoading && (
-          <div className="loading-container">
-            <Spinner animation="border" variant="dark" />
-            <p className="loading-text">Loading cases...</p>
+          <div className="loading-overlay">
+            <div className="loading-content">
+              <div className="spinner-border text-dark" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2">Loading cases...</p>
+            </div>
           </div>
         )}
 
@@ -219,7 +225,7 @@ const DashboardPage = ({ onLogout }) => {
           id="case-tabs"
           activeKey={key}
           onSelect={(k) => setKey(k)}
-          className="case-tabs mb-3"
+          className="mb-3 custom-tabs"
         >
           <Tab eventKey="pending" title="Pending Cases">
             {filteredCases.length === 0 ? (

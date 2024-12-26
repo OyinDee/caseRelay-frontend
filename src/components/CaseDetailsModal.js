@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Button, Modal, Spinner, Alert, Table } from 'react-bootstrap';
-import axios from 'axios';
+import { Container, Card, Button, Modal, Spinner, Alert, Table, Form } from 'react-bootstrap';
+import axios, { AxiosError } from 'axios';
 import jsPDF from 'jspdf';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { toast } from 'react-toastify';
+import { api } from '../config/api';
 
 const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide to handleClose
   const [isUploading, setIsUploading] = useState(false);
@@ -13,6 +15,8 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
   const [error, setError] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [caseStatus, setCaseStatus] = useState('');
+  const [assignedOfficer, setAssignedOfficer] = useState('');
 
   useEffect(() => {
     if (show && caseId) {
@@ -22,27 +26,24 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
 
   const fetchCaseDetails = async () => {
     setIsLoading(true);
-    const jwtToken = localStorage.getItem('jwtToken');
-
     try {
-      const caseResponse = await axios.get(`https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}/extras`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      setCaseDetails(caseResponse.data);
-
-      const caseData = await axios.get(`https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      console.log(caseData)
-      setComments(caseData.data.comments);
-      setDocuments(caseData.data.documents || []);
-      setIsLoading(false);
+      const [detailsResponse, extrasResponse] = await Promise.all([
+        api.get(`/case/${caseId}`),
+        api.get(`/case/${caseId}/extras`)
+      ]);
+      
+      setCaseDetails(detailsResponse.data);
+      setComments(extrasResponse.data.comments || []);
+      setDocuments(extrasResponse.data.documents || []);
+      setCaseStatus(detailsResponse.data.status);
+      setAssignedOfficer(detailsResponse.data.assignedOfficerId);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch case details");
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || 'Failed to fetch case details');
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -67,10 +68,11 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
           },
         }
       );
+      toast.success('Comment added successfully');
       setComments([...comments, newCommentData]);
       setNewComment('');
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to add comment");
+      toast.error('Failed to add comment');
     }
   };
 
@@ -88,10 +90,15 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
           'Content-Type': 'multipart/form-data',
         },
       });
+      toast.success('Document uploaded successfully');
       setSelectedFile(null);
       await fetchCaseDetails();
     } catch (err) {
-      setError("Failed to upload document");
+      if (err instanceof AxiosError) {
+        toast.error(err.response?.data?.message || 'Failed to upload document');
+      } else {
+        toast.error('Failed to upload document');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -219,7 +226,25 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
     doc.save(`Case_${caseDetails.caseNumber}_Report.pdf`);
 };
   
-  
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      await api.patch(`/case/${caseId}/status`, { status: newStatus });
+      toast.success('Status updated successfully');
+      fetchCaseDetails();
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleAssignOfficer = async (officerId) => {
+    try {
+      await api.patch(`/case/${caseId}/assign`, { officerId });
+      toast.success('Case assigned successfully');
+      fetchCaseDetails();
+    } catch (error) {
+      toast.error('Failed to assign case');
+    }
+  };
 
   return (
     <Modal 
@@ -370,6 +395,19 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
                 </div>
               </Card.Body>
             </Card>
+
+            <Form.Select
+              value={caseStatus}
+              onChange={(e) => handleStatusUpdate(e.target.value)}
+              className="mb-3"
+            >
+              <option value="Pending">Pending</option>
+              <option value="Open">Open</option>
+              <option value="Investigating">Investigating</option>
+              <option value="Closed">Closed</option>
+              <option value="Resolved">Resolved</option>
+            </Form.Select>
+
           </>
         )}
       </Modal.Body>
