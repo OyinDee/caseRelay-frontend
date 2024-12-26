@@ -71,7 +71,7 @@ const DashboardPage = ({ onLogout }) => {
     }
 
     try {
-      const response = await axios.get('https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/user', {
+      const response = await axios.get('https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/user', {
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
           'Content-Type': 'application/json'
@@ -118,7 +118,7 @@ const DashboardPage = ({ onLogout }) => {
     try {
       const jwtToken = localStorage.getItem('jwtToken');
       const response = await axios.post(
-        `https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case/handover/${caseId}`,
+        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/handover/${caseId}`,
         { NewOfficerId: newOfficerId },
         {
           headers: {
@@ -148,7 +148,7 @@ const DashboardPage = ({ onLogout }) => {
     try {
       const jwtToken = localStorage.getItem('jwtToken');
       await axios.post(
-        'https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/case',
+        'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case',
         newCase,
         {
           headers: {

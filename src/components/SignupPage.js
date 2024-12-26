@@ -29,7 +29,7 @@ const SignupPage = () => {
     };
 
     try {
-      await axios.post('https://caserelay-hmaah2bddygjcgbn.canadacentral-01.azurewebsites.net/api/auth/register', data);
+      await axios.post('https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/auth/register', data);
       setLoading(false);
       navigate('/login');
     } catch (error) {
