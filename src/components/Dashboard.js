@@ -30,8 +30,7 @@ const DashboardPage = ({ onLogout }) => {
     title: '',
     description: '',
     category: '',
-    severity: '',
-    evidenceFiles: null,
+    severity: ''
   });
   const navigate = useNavigate();
 
@@ -148,13 +147,15 @@ const DashboardPage = ({ onLogout }) => {
   const handleCreateCase = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      Object.keys(newCase).forEach(key => {
-        if (newCase[key]) formData.append(key, newCase[key]);
-      });
+      const data = {
+        title: newCase.title,
+        description: newCase.description,
+        category: newCase.category,
+        severity: newCase.severity
+      };
 
-      await api.post('/case', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      await api.post('/case', data, {
+        headers: { 'Content-Type': 'application/json' }
       });
       toast.success('Case created successfully!');
       setShowCreateCaseModal(false);
@@ -180,7 +181,7 @@ const DashboardPage = ({ onLogout }) => {
 
   return (
     <div className="dashboard-wrapper">
-      <Container className="dashboard-container">
+      <Container className="dashboard-container mt-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <SearchBar onSearchResults={handleSearchResults} />
           <Button 
