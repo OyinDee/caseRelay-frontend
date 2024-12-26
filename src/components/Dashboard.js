@@ -32,6 +32,7 @@ const DashboardPage = ({ onLogout }) => {
     category: '',
     severity: ''
   });
+  const [isSearchResults, setIsSearchResults] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -142,6 +143,7 @@ const DashboardPage = ({ onLogout }) => {
 
   const handleSearchResults = (results) => {
     setCases(results);
+    setIsSearchResults(true);
   };
 
   const handleCreateCase = async (e) => {
@@ -151,7 +153,8 @@ const DashboardPage = ({ onLogout }) => {
         title: newCase.title,
         description: newCase.description,
         category: newCase.category,
-        severity: newCase.severity
+        severity: newCase.severity,
+        assignedOfficerId: String(userDetails.policeId) // Ensure it's a string
       };
 
       await api.post('/case', data, {
@@ -225,7 +228,10 @@ const DashboardPage = ({ onLogout }) => {
         <Tabs
           id="case-tabs"
           activeKey={key}
-          onSelect={(k) => setKey(k)}
+          onSelect={(k) => {
+            setKey(k);
+            setIsSearchResults(false); // Reset search results state when switching tabs
+          }}
           className="mb-3 custom-tabs"
         >
           <Tab eventKey="pending" title="Pending Cases">
@@ -244,23 +250,25 @@ const DashboardPage = ({ onLogout }) => {
                       <p><strong>Severity:</strong> {caseItem.severity}</p>
                       <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
                       <p><strong>Status:</strong> {caseItem.status}</p>
-                      <div className="d-flex justify-content-between">
-                        <button
-                          className="handover-button w-100 mx-1"
-                          onClick={() => {
-                            setSelectedCaseId(caseItem.caseId);
-                            setShowHandoverModal(true);
-                          }}
-                        >
-                          Handover this case
-                        </button>
-                        <button 
-                          className="handover-button w-100 mx-1" 
-                          onClick={() => handleViewCase(caseItem.caseId)}
-                        >
-                          View Case
-                        </button>
-                      </div>
+                      {!isSearchResults && (
+                        <div className="d-flex justify-content-between">
+                          <button
+                            className="handover-button w-100 mx-1"
+                            onClick={() => {
+                              setSelectedCaseId(caseItem.caseId);
+                              setShowHandoverModal(true);
+                            }}
+                          >
+                            Handover this case
+                          </button>
+                          <button 
+                            className="handover-button w-100 mx-1" 
+                            onClick={() => handleViewCase(caseItem.caseId)}
+                          >
+                            View Case
+                          </button>
+                        </div>
+                      )}
                     </Card.Body>
                   </Collapse>
                 </Card>
