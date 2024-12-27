@@ -1,386 +1,427 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Modal, Form } from 'react-bootstrap';
+import { Container, Card, Button, Modal, Spinner, Alert, Table, Form } from 'react-bootstrap';
 import axios, { AxiosError } from 'axios';
-import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './css/Dashboard.css';
-import CaseDetailsModal from './CaseDetailsModal';
-import SearchBar from './SearchBar';
 import { toast } from 'react-toastify';
 import { api } from '../config/api';
 
-const DashboardPage = ({ onLogout }) => {
-  const [key, setKey] = useState('pending');
-  const [cases, setCases] = useState([]);
-  const [expandedCases, setExpandedCases] = useState({});
+const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide to handleClose
+  const [isUploading, setIsUploading] = useState(false);
+  const [caseDetails, setCaseDetails] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userDetails, setUserDetails] = useState({
-    name: '',
-    role: '',
-    department: '',
-    badgeNumber: '',
-    policeId: '' // Add policeId here
-  });
-  const [newOfficerId, setNewOfficerId] = useState(""); 
-  const [selectedCaseId, setSelectedCaseId] = useState(null);
-  const [showCaseModal, setShowCaseModal] = useState(false);
-  const [showHandoverModal, setShowHandoverModal] = useState(false); 
-  const [showCreateCaseModal, setShowCreateCaseModal] = useState(false);
-  const [newCase, setNewCase] = useState({
-    title: '',
-    description: '',
-    category: '',
-    severity: '',
-    assignedOfficerId: '' // Add assignedOfficerId here
-  });
-  const [isSearchResults, setIsSearchResults] = useState(false);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem('jwtToken');
-    localStorage.removeItem('userDetails');
-    onLogout && onLogout();
-    navigate('/login');
-  };
-
-  const handleViewCase = (caseId) => {
-    setSelectedCaseId(caseId);
-    setShowCaseModal(true);
-  };
-
-  const handleCloseCaseModal = () => {
-    setShowCaseModal(false);
-    setSelectedCaseId(null);
-  };
+  const [newComment, setNewComment] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [caseStatus, setCaseStatus] = useState('');
+  const [assignedOfficer, setAssignedOfficer] = useState('');
 
   useEffect(() => {
-    const storedUserDetails = localStorage.getItem('userDetails');
-    if (storedUserDetails) {
-      try {
-        const parsedUserDetails = JSON.parse(storedUserDetails);
-        setUserDetails(parsedUserDetails);
-        setNewCase((prevNewCase) => ({
-          ...prevNewCase,
-          assignedOfficerId: parsedUserDetails.policeId // Set assignedOfficerId from userDetails
-        }));
-      } catch (error) {
-        console.error('Error parsing user details:', error);
-      }
+    if (show && caseId) {
+      fetchCaseDetails();
     }
-    fetchCases();
-  }, [onLogout, navigate]);
+  }, [show, caseId]);
 
-  const fetchCases = async () => {
-    const jwtToken = localStorage.getItem('jwtToken');
-
-    if (!jwtToken) {
-      handleLogout(); 
-      return;
-    }
-
+  const fetchCaseDetails = async () => {
+    setIsLoading(true);
     try {
-      const response = await axios.get('https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/user', {
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      setCases(response.data);
-      console.log(response.data)
-      setIsLoading(false);
+      const [detailsResponse, extrasResponse] = await Promise.all([
+        api.get(`/case/${caseId}`),
+        api.get(`/case/${caseId}/extras`)
+      ]);
+      
+      setCaseDetails(detailsResponse.data);
+      setComments(extrasResponse.data.comments || []);
+      setDocuments(extrasResponse.data.documents || []);
+      setCaseStatus(detailsResponse.data.status);
+      setAssignedOfficer(detailsResponse.data.assignedOfficerId);
     } catch (err) {
       if (err instanceof AxiosError) {
-        if (err.response?.status === 401) {
-          localStorage.removeItem('jwtToken');
-          navigate('/login');
-        } else {
-          const message = err.response?.data?.message || 'Failed to fetch cases. Try again.';
-          setError(message);
-        }
+        setError(err.response?.data?.message || 'Failed to fetch case details');
       } else {
         setError('An unexpected error occurred');
       }
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleCase = (caseId) => {
-    setExpandedCases((prev) => ({
-      ...prev,
-      [caseId]: !prev[caseId],
-    }));
-  };
+  const handleAddComment = async () => {
+    const jwtToken = localStorage.getItem('jwtToken');
+    const currentTime = new Date().toISOString();
 
-  const getPendingStatuses = ['Pending', 'Open', 'Investigating'];
-  const getSolvedStatuses = ['Closed', 'Resolved'];
-
-  const filteredCases = cases.filter((c) =>
-    (key === 'pending' && getPendingStatuses.includes(c.status)) ||
-    (key === 'closed' && getSolvedStatuses.includes(c.status))
-  );
-
-  const handleHandover = async (caseId) => {
-    if (!caseId || !newOfficerId) {
-      toast.error("Please provide a valid Case ID and Officer ID.");
-      return;
-    }
+    const newCommentData = {
+      commentText: newComment,
+      authorId: (JSON.parse(localStorage.userDetails)).name,
+      createdAt: currentTime,
+    };
 
     try {
-      const jwtToken = localStorage.getItem('jwtToken');
-      const response = await axios.post(
-        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/handover/${caseId}`,
-        { NewOfficerId: newOfficerId },
+      await axios.post(
+        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}/comment`,
+        newCommentData,
         {
           headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwtToken}`,
           },
         }
       );
-      toast.success(response.data.message || 'Case handed over successfully.');
-      setShowHandoverModal(false);
-      fetchCases(); 
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error handing over the case.');
+      toast.success('Comment added successfully');
+      setComments([...comments, newCommentData]);
+      setNewComment('');
+    } catch (err) {
+      toast.error('Failed to add comment');
     }
   };
 
-  const handleSearchResults = (results) => {
-    setCases(results);
-    setIsSearchResults(true);
-  };
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+    const jwtToken = localStorage.getItem('jwtToken');
+    const formData = new FormData();
+    formData.append('file', selectedFile);
 
-  const handleCreateCase = async (e) => {
-    e.preventDefault();
+    setIsUploading(true);
     try {
-      const data = {
-        ...newCase, // Spread the newCase state to include all its properties
-        assignedOfficerId: String(userDetails.policeId) // Ensure it's a string
-      };
-
-      await api.post('/case', data, {
-        headers: { 'Content-Type': 'application/json' }
+      await axios.post(`https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/${caseId}/document`, formData, {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      toast.success('Case created successfully!');
-      setShowCreateCaseModal(false);
-      fetchCases();
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || 'Failed to create case');
+      toast.success('Document uploaded successfully');
+      setSelectedFile(null);
+      await fetchCaseDetails();
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        toast.error(err.response?.data?.message || 'Failed to upload document');
       } else {
-        toast.error('An unexpected error occurred');
+        toast.error('Failed to upload document');
       }
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleUpdateCaseStatus = async (caseId, status) => {
+  const exportCaseReport = () => {
+    if (!caseDetails) return;
+
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 15;
+    const lineHeight = 7;
+
+    // Set up document properties
+    doc.setFont('helvetica', 'normal');
+
+    // Function to draw header
+    const drawHeader = () => {
+        // Company/Organization header (placeholder)
+        doc.setFontSize(10);
+        doc.text('OFFICIAL CASE REPORT', margin, 15, { align: 'left' });
+        
+        // Horizontal line
+        doc.setLineWidth(0.5);
+        doc.line(margin, 20, pageWidth - margin, 20);
+    };
+
+    // Function to add a line of text
+    const addLine = (text, y, options = {}) => {
+        const {
+            fontSize = 11,
+            align = 'left',
+            style = 'normal'
+        } = options;
+
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', style);
+        doc.text(text, align === 'left' ? margin : pageWidth - margin, y, { align });
+    };
+
+    // Function to add a section
+    const addSection = (title, content, startY, options = {}) => {
+        const { 
+            titleFontSize = 12, 
+            contentFontSize = 11 
+        } = options;
+
+        // Add section title
+        addLine(title, startY, { 
+            fontSize: titleFontSize, 
+            style: 'bold' 
+        });
+        let currentY = startY + lineHeight;
+
+        // Add content lines
+        content.forEach(item => {
+            if (!item) return; // Skip empty items
+            const lines = doc.splitTextToSize(item, pageWidth - (2 * margin));
+            lines.forEach(line => {
+                addLine(line, currentY, { fontSize: contentFontSize });
+                currentY += lineHeight;
+            });
+        });
+
+        return currentY + lineHeight;
+    };
+
+    // Function to add footer
+    const addFooter = (exporterName) => {
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            
+            // Page number
+            doc.setFontSize(10);
+            doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - margin, { align: 'center' });
+            
+            // Horizontal line
+            doc.setLineWidth(0.5);
+            doc.line(margin, pageHeight - (margin + 10), pageWidth - margin, pageHeight - (margin + 10));
+            
+            // Exported by
+            if (i === pageCount) {
+                doc.text(`Exported by: ${exporterName}`, margin, pageHeight - margin, { align: 'left' });
+            }
+        }
+    };
+
+    // Start PDF generation
+    drawHeader();
+
+    // Case Information Section
+    let yPosition = addSection('Case Information', [
+        `Case Number: ${caseDetails.caseNumber}`,
+        `Title: ${caseDetails.title}`,
+        `Description: ${caseDetails.description}`,
+        `Category: ${caseDetails.category}`,
+        `Severity: ${caseDetails.severity}`,
+        `Status: ${caseDetails.status}`,
+        `Reported At: ${new Date(caseDetails.reportedAt).toLocaleString()}`,
+        caseDetails.resolvedAt ? `Resolved At: ${new Date(caseDetails.resolvedAt).toLocaleString()}` : ''
+    ], 30);
+
+    // Comments Section
+    yPosition = addSection('Comments', comments.map((comment, index) => 
+        `${index + 1}. ${comment.commentText} (By: ${comment.authorId} at ${new Date(comment.createdAt).toLocaleString()})`
+    ), yPosition);
+
+    // Documents Section
+    yPosition = addSection('Attached Documents', documents.map((doc, index) => 
+        `${index + 1}. ${doc.fileUrl} (Uploaded at: ${new Date(doc.uploadedAt).toLocaleString()})`
+    ), yPosition);
+
+    // Add footer with exporter name
+    const exporterName = JSON.parse(localStorage.userDetails).name;
+    addFooter(exporterName);
+
+    // Save the document
+    doc.save(`Case_${caseDetails.caseNumber}_Report.pdf`);
+};
+  
+  const handleStatusUpdate = async (newStatus) => {
     try {
-      await api.patch(`/case/${caseId}/status`, { status });
-      toast.success('Case status updated successfully');
-      fetchCases();
+      await api.patch(`/case/${caseId}/status`, { status: newStatus });
+      toast.success('Status updated successfully');
+      fetchCaseDetails();
     } catch (error) {
-      toast.error('Failed to update case status');
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleAssignOfficer = async (officerId) => {
+    try {
+      await api.patch(`/case/${caseId}/assign`, { officerId });
+      toast.success('Case assigned successfully');
+      fetchCaseDetails();
+    } catch (error) {
+      toast.error('Failed to assign case');
     }
   };
 
   return (
-    <div className="dashboard-wrapper mt-5">
-      <Container className="dashboard-container mt-5">
-        <div className="search-actions">
-          <SearchBar onSearchResults={handleSearchResults} />
-          <Button 
-            variant="dark" 
-            onClick={() => setShowCreateCaseModal(true)}
-          >
-            + New Case
-          </Button>
-        </div>
-        
-        <div className="user-details-card">
-          <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
-          <div className="user-info">
-            <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
-            <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
-            <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
-            <p><strong>Police ID:</strong> {userDetails.policeId || 'N/A'}</p>
-          </div>
-        </div>
+    <Modal 
+      show={show} 
+      onHide={handleClose} 
+      size="lg" 
+      centered
+      scrollable  // Add this to make modal content scrollable
+    >
+      <Modal.Header closeButton>
+        <Modal.Title>Case Details: {caseDetails?.caseNumber}</Modal.Title>
+      </Modal.Header>
 
+      <Modal.Body>
         {isLoading ? (
-          <div className="loading-overlay">
+          <div className="text-center">
             <Spinner animation="border" variant="dark" />
+            <p>Loading case details...</p>
           </div>
         ) : error ? (
           <Alert variant="danger">{error}</Alert>
         ) : (
-          <Tabs
-            id="case-tabs"
-            activeKey={key}
-            onSelect={(k) => {
-              setKey(k);
-              setIsSearchResults(false);
-            }}
-            className="custom-tabs"
-          >
-            <Tab eventKey="pending" title="Pending Cases">
-              {filteredCases.length === 0 ? (
-                <p className="no-cases-message">No pending cases</p>
-              ) : (
-                filteredCases.map((caseItem) => (
-                  <Card key={caseItem.caseId} className="case-card mb-3">
-                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
-                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
-                    </Card.Header>
-                    <Collapse in={expandedCases[caseItem.caseId]}>
-                      <Card.Body className="case-card-body">
-                        <p><strong>Description:</strong> {caseItem.description}</p>
-                        <p><strong>Category:</strong> {caseItem.category}</p>
-                        <p><strong>Severity:</strong> {caseItem.severity}</p>
-                        <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
-                        <p><strong>Status:</strong> {caseItem.status}</p>
-                        {!isSearchResults && (
-                          <div className="d-flex justify-content-between">
-                            <button
-                              className="handover-button w-100 mx-1"
-                              onClick={() => {
-                                setSelectedCaseId(caseItem.caseId);
-                                setShowHandoverModal(true);
-                              }}
-                            >
-                              Handover this case
-                            </button>
-                            <button 
-                              className="handover-button w-100 mx-1" 
-                              onClick={() => handleViewCase(caseItem.caseId)}
-                            >
-                              View Case
-                            </button>
-                          </div>
-                        )}
-                      </Card.Body>
-                    </Collapse>
-                  </Card>
-                ))
-              )}
-            </Tab>
+          <>
+            <Card className="mb-3">
+              <Card.Header>Case Information</Card.Header>
+              <Card.Body>
+                <p><strong>Title:</strong> {caseDetails.title}</p>
+                <p><strong>Description:</strong> {caseDetails.description}</p>
+                <p><strong>Category:</strong> {caseDetails.category}</p>
+                <p><strong>Severity:</strong> {caseDetails.severity}</p>
+                <p><strong>Status:</strong> {caseDetails.status}</p>
+                <p><strong>Reported At:</strong> {new Date(caseDetails.reportedAt).toLocaleString()}</p>
+                {caseDetails.resolvedAt && (
+                  <p><strong>Resolved At:</strong> {new Date(caseDetails.resolvedAt).toLocaleString()}</p>
+                )}
+              </Card.Body>
+            </Card>
 
-            <Tab eventKey="closed" title="Solved Cases">
-              {filteredCases.length === 0 ? (
-                <p className="no-cases-message">No solved cases</p>
+            <Card className="mb-3">
+              <Card.Header>Comments</Card.Header>
+              <Card.Body>
+                {comments.length === 0 ? (
+                  <p className="text-muted">No comments yet</p>
+                ) : (
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Author</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comments.map((comment, index) => (
+                        <tr key={index}>
+                          <td>{comment.authorId}</td>
+                          <td>{comment.commentText}</td>
+                          <td>{new Date(comment.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+                <div className="mt-3">
+                  <h6>Add a Comment</h6>
+                  <div className="d-flex">
+                    <input
+                      type="text"
+                      className="form-control mr-2"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Enter your comment"
+                    />
+                    <Button
+                      variant="dark"
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
+                      className="ml-2"
+                    >
+                      Add Comment
+                    </Button>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+
+            <Card className="mb-3">
+              <Card.Header>Attached Documents</Card.Header>
+              <Card.Body>
+                {documents.length === 0 ? (
+                  <p className="text-muted">No documents attached</p>
+                ) : (
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Document Name</th>
+                        <th>Uploaded At</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documents.map((doc, index) => (
+                        <tr key={doc.fileUrl + index}>
+                          <td>{doc.fileName}</td>
+                          <td>{new Date(doc.uploadedAt).toLocaleString()}</td>
+                          <td>
+                            <Button
+                              variant="outline-dark"
+                              size="sm"
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                            >
+                              View
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+
+                <div className="mt-3">
+                  <input
+                    type="file"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                  />
+            <Button
+              variant="dark"
+              onClick={handleFileUpload}
+              disabled={!selectedFile || isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="mr-2"
+                  />
+                  Uploading...
+                </>
               ) : (
-                filteredCases.map((caseItem) => (
-                  <Card key={caseItem.caseId} className="case-card mb-3">
-                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
-                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
-                    </Card.Header>
-                    <Collapse in={expandedCases[caseItem.caseId]}>
-                      <Card.Body className="case-card-body">
-                        <p><strong>Description:</strong> {caseItem.description}</p>
-                        <p><strong>Category:</strong> {caseItem.category}</p>
-                        <p><strong>Severity:</strong> {caseItem.severity}</p>
-                        <p><strong>Status:</strong> {caseItem.status}</p>
-                      </Card.Body>
-                    </Collapse>
-                  </Card>
-                ))
+                'Upload Document'
               )}
-            </Tab>
-          </Tabs>
+            </Button>
+
+                </div>
+              </Card.Body>
+            </Card>
+
+            <Form.Select
+              value={caseStatus}
+              onChange={(e) => handleStatusUpdate(e.target.value)}
+              className="mb-3"
+            >
+              <option value="Pending">Pending</option>
+              <option value="Open">Open</option>
+              <option value="Investigating">Investigating</option>
+              <option value="Closed">Closed</option>
+              <option value="Resolved">Resolved</option>
+            </Form.Select>
+
+          </>
         )}
-      </Container>
+      </Modal.Body>
 
-      <CaseDetailsModal
-        show={showCaseModal}
-        handleClose={handleCloseCaseModal}
-        caseId={selectedCaseId}
-      />
-
-      <Modal show={showHandoverModal} onHide={() => setShowHandoverModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Handover Case</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p><small><i>Disclaimer: Handover will transfer the case to another officer. Ensure the provided Officer ID is correct.</i></small></p>
-          <Form onSubmit={(e) => { e.preventDefault(); handleHandover(selectedCaseId); }}>
-            <Form.Group controlId="officerId">
-              <Form.Label>New Officer ID</Form.Label>
-              <Form.Control
-                type="text"
-                value={newOfficerId}
-                onChange={(e) => setNewOfficerId(e.target.value)}
-                required
-              />
-            </Form.Group>
-            <Button variant="dark" type="submit" className="w-100 mt-2">
-              Handover
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
-
-      <Modal show={showCreateCaseModal} onHide={() => setShowCreateCaseModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New Case</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleCreateCase}>
-            <Form.Group className="mb-3">
-              <Form.Label>Title</Form.Label>
-              <Form.Control
-                type="text"
-                value={newCase.title}
-                onChange={(e) => setNewCase({...newCase, title: e.target.value})}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={newCase.description}
-                onChange={(e) => setNewCase({...newCase, description: e.target.value})}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
-              <Form.Select
-                value={newCase.category}
-                onChange={(e) => setNewCase({...newCase, category: e.target.value})}
-                required
-              >
-                <option value="">Select category...</option>
-                <option value="Theft">Theft</option>
-                <option value="Assault">Assault</option>
-                <option value="Fraud">Fraud</option>
-                <option value="Other">Other</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Severity</Form.Label>
-              <Form.Select
-                value={newCase.severity}
-                onChange={(e) => setNewCase({...newCase, severity: e.target.value})}
-                required
-              >
-                <option value="">Select severity...</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </Form.Select>
-            </Form.Group>
-            <Button variant="dark" type="submit" className="w-100">
-              Create Case
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
-    </div>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose}> 
+          Close
+        </Button>
+        <Button variant="dark" onClick={exportCaseReport}>
+          Export Case Report
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 };
 
-export default DashboardPage;
+export default CaseDetailsModal; 
