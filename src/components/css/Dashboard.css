@@ -1,199 +1,151 @@
 .dashboard {
-  display: flex;
-  min-height: 100vh;
-  background-color: white;
-}
-
-.sidebar {
-  width: 280px;
-  background: black;
-  color: white;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 2rem;
-  position: fixed;
-  height: 100vh;
-  overflow-y: auto;
+  background: #fff;
 }
 
-.user-profile {
-  text-align: center;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.avatar {
-  width: 80px;
-  height: 80px;
-  background: white;
-  color: black;
-  border-radius: 50%;
-  margin: 0 auto 1rem;
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 1rem;
 }
 
-.user-details {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  opacity: 0.8;
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.user-details p {
-  margin: 0.5rem 0;
+.user-name {
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.tab-buttons {
-  margin-top: 2rem;
+.user-role {
+  font-size: 0.875rem;
+  color: #666;
 }
 
-.tab-btn {
-  width: 100%;
-  padding: 1rem;
-  margin: 0.5rem 0;
+.tabs {
+  display: flex;
+  gap: 1rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border: none;
   background: none;
-  border: 1px solid white;
-  color: white;
-  text-align: left;
   cursor: pointer;
-  transition: all 0.3s;
+  font-size: 1rem;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
 }
 
-.tab-btn:hover {
-  background: white;
-  color: black;
+.tab:hover {
+  color: #000;
 }
 
-.tab-btn.active {
-  background: white;
-  color: black;
+.tab.active {
+  border-bottom: 2px solid #000;
+  font-weight: 500;
 }
 
-.main-content {
-  flex: 1;
-  margin-left: 280px;
-  padding: 2rem;
-}
-
-.content-header {
+.actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
-.create-btn {
-  padding: 0.8rem 1.5rem;
-  background: black;
-  color: white;
+.new-case {
+  padding: 0.75rem 1.5rem;
+  background: #000;
+  color: #fff;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
+  transition: opacity 0.2s;
 }
 
-.create-btn:hover {
+.new-case:hover {
   opacity: 0.9;
 }
 
-.cases-grid {
+.cases {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
-.case-card {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+.case {
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  overflow: hidden;
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.case:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .case-header {
-  padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.05);
-  cursor: pointer;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
+  margin-bottom: 1rem;
 }
 
 .case-header h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
 }
 
-.status-badge {
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  background: black;
-  color: white;
+.status {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: #f5f5f5;
 }
 
-.case-content {
-  padding: 1.5rem;
-  display: none;
-}
-
-.case-content.expanded {
-  display: block;
-}
-
-.case-number {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.case-description {
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-}
-
-.case-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.case-body {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
-.meta-item {
-  font-size: 0.9rem;
-}
-
-.meta-item label {
-  color: rgba(0, 0, 0, 0.6);
-  margin-right: 0.5rem;
-}
-
-.case-actions {
+.meta {
   display: flex;
   gap: 1rem;
+  font-size: 0.875rem;
+  color: #666;
 }
 
-.case-actions button {
-  flex: 1;
-  padding: 0.8rem;
-  border: 1px solid black;
-  background: white;
-  color: black;
+.actions button {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: 1px solid #000;
+  border-radius: 4px;
+  margin-right: 0.5rem;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
-.case-actions button:hover {
-  background: black;
-  color: white;
+.actions button:hover {
+  background: #000;
+  color: #fff;
 }
 
-.modal-overlay {
+.modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -201,74 +153,77 @@
   z-index: 1000;
 }
 
-.modal {
-  background: white;
+.modal-content {
+  background: #fff;
+  padding: 2rem;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
 }
 
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.modal-content h2 {
+  margin: 0 0 1.5rem 0;
 }
 
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.form-group {
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  width: 100%;
+  padding: 0.75rem;
   margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
+  font-size: 1rem;
 }
 
-.submit-btn {
-  width: 100%;
-  padding: 1rem;
-  background: black;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
+.modal-content textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
-.submit-btn:hover {
-  opacity: 0.9;
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
-.loader {
+.loading {
   text-align: center;
   padding: 2rem;
+  color: #666;
 }
 
-.error-message {
-  color: black;
+.error {
+  color: #000;
   text-align: center;
   padding: 2rem;
-  border: 1px solid black;
-  margin: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cases {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
   }
