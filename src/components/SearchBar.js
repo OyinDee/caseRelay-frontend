@@ -58,7 +58,7 @@ const SearchBar = ({ onSearchResults }) => {
           {isSearching ? (
             <span className="spinner-border spinner-border-sm" />
           ) : (
-            <SearchIcon size={20} />
+            <SearchIcon size={10} />
           )}
         </Button>
       </InputGroup>
