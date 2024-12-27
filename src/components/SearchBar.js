@@ -12,12 +12,19 @@ const SearchBar = ({ onSearchResults }) => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!keyword.trim()) return;
+    if (!keyword.trim()) {
+      toast.warning('Please enter a search term');
+      return;
+    }
 
     setIsSearching(true);
     try {
+      const token = localStorage.getItem('jwtToken');
       const response = await api.get('/case/search', {
-        params: { keyword }
+        params: { keyword },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       onSearchResults(response.data);
     } catch (error) {
@@ -26,6 +33,7 @@ const SearchBar = ({ onSearchResults }) => {
       } else {
         toast.error('An unexpected error occurred');
       }
+      onSearchResults([]); // Return empty array on error
     } finally {
       setIsSearching(false);
     }

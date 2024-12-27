@@ -188,120 +188,107 @@ const DashboardPage = ({ onLogout }) => {
   return (
     <div className="dashboard-wrapper mt-5">
       <Container className="dashboard-container mt-5">
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="search-actions">
           <SearchBar onSearchResults={handleSearchResults} />
           <Button 
             variant="dark" 
             onClick={() => setShowCreateCaseModal(true)}
           >
-            Create New Case
+            + New Case
           </Button>
         </div>
         
-        <div className="user-details-card mb-4">
-          <div className="row">
-            <div className="col-md-8">
-              <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
-              <div className="user-info">
-                <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
-                <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
-                <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
-                <p><strong>Police ID:</strong> {userDetails.policeId || 'N/A'}</p>
-              </div>
-            </div>
+        <div className="user-details-card">
+          <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
+          <div className="user-info">
+            <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
+            <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
+            <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
+            <p><strong>Police ID:</strong> {userDetails.policeId || 'N/A'}</p>
           </div>
         </div>
 
-        {isLoading && (
+        {isLoading ? (
           <div className="loading-overlay">
-            <div className="loading-content">
-              <div className="spinner-border text-dark" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <p className="mt-2">Loading cases...</p>
-            </div>
+            <Spinner animation="border" variant="dark" />
           </div>
+        ) : error ? (
+          <Alert variant="danger">{error}</Alert>
+        ) : (
+          <Tabs
+            id="case-tabs"
+            activeKey={key}
+            onSelect={(k) => {
+              setKey(k);
+              setIsSearchResults(false);
+            }}
+            className="custom-tabs"
+          >
+            <Tab eventKey="pending" title="Pending Cases">
+              {filteredCases.length === 0 ? (
+                <p className="no-cases-message">No pending cases</p>
+              ) : (
+                filteredCases.map((caseItem) => (
+                  <Card key={caseItem.caseId} className="case-card mb-3">
+                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
+                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
+                    </Card.Header>
+                    <Collapse in={expandedCases[caseItem.caseId]}>
+                      <Card.Body className="case-card-body">
+                        <p><strong>Description:</strong> {caseItem.description}</p>
+                        <p><strong>Category:</strong> {caseItem.category}</p>
+                        <p><strong>Severity:</strong> {caseItem.severity}</p>
+                        <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
+                        <p><strong>Status:</strong> {caseItem.status}</p>
+                        {!isSearchResults && (
+                          <div className="d-flex justify-content-between">
+                            <button
+                              className="handover-button w-100 mx-1"
+                              onClick={() => {
+                                setSelectedCaseId(caseItem.caseId);
+                                setShowHandoverModal(true);
+                              }}
+                            >
+                              Handover this case
+                            </button>
+                            <button 
+                              className="handover-button w-100 mx-1" 
+                              onClick={() => handleViewCase(caseItem.caseId)}
+                            >
+                              View Case
+                            </button>
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Collapse>
+                  </Card>
+                ))
+              )}
+            </Tab>
+
+            <Tab eventKey="closed" title="Solved Cases">
+              {filteredCases.length === 0 ? (
+                <p className="no-cases-message">No solved cases</p>
+              ) : (
+                filteredCases.map((caseItem) => (
+                  <Card key={caseItem.caseId} className="case-card mb-3">
+                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
+                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
+                    </Card.Header>
+                    <Collapse in={expandedCases[caseItem.caseId]}>
+                      <Card.Body className="case-card-body">
+                        <p><strong>Description:</strong> {caseItem.description}</p>
+                        <p><strong>Category:</strong> {caseItem.category}</p>
+                        <p><strong>Severity:</strong> {caseItem.severity}</p>
+                        <p><strong>Status:</strong> {caseItem.status}</p>
+                      </Card.Body>
+                    </Collapse>
+                  </Card>
+                ))
+              )}
+            </Tab>
+          </Tabs>
         )}
-
-        {error && (
-          <Alert variant="danger" className="error-alert">
-            {error}
-          </Alert>
-        )}
-
-        <Tabs
-          id="case-tabs"
-          activeKey={key}
-          onSelect={(k) => {
-            setKey(k);
-            setIsSearchResults(false); // Reset search results state when switching tabs
-          }}
-          className="mb-3 custom-tabs"
-        >
-          <Tab eventKey="pending" title="Pending Cases">
-            {filteredCases.length === 0 ? (
-              <p className="no-cases-message">No pending cases</p>
-            ) : (
-              filteredCases.map((caseItem) => (
-                <Card key={caseItem.caseId} className="case-card mb-3">
-                  <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
-                    <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
-                  </Card.Header>
-                  <Collapse in={expandedCases[caseItem.caseId]}>
-                    <Card.Body className="case-card-body">
-                      <p><strong>Description:</strong> {caseItem.description}</p>
-                      <p><strong>Category:</strong> {caseItem.category}</p>
-                      <p><strong>Severity:</strong> {caseItem.severity}</p>
-                      <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
-                      <p><strong>Status:</strong> {caseItem.status}</p>
-                      {!isSearchResults && (
-                        <div className="d-flex justify-content-between">
-                          <button
-                            className="handover-button w-100 mx-1"
-                            onClick={() => {
-                              setSelectedCaseId(caseItem.caseId);
-                              setShowHandoverModal(true);
-                            }}
-                          >
-                            Handover this case
-                          </button>
-                          <button 
-                            className="handover-button w-100 mx-1" 
-                            onClick={() => handleViewCase(caseItem.caseId)}
-                          >
-                            View Case
-                          </button>
-                        </div>
-                      )}
-                    </Card.Body>
-                  </Collapse>
-                </Card>
-              ))
-            )}
-          </Tab>
-
-          <Tab eventKey="closed" title="Solved Cases">
-            {filteredCases.length === 0 ? (
-              <p className="no-cases-message">No solved cases</p>
-            ) : (
-              filteredCases.map((caseItem) => (
-                <Card key={caseItem.caseId} className="case-card mb-3">
-                  <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
-                    <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
-                  </Card.Header>
-                  <Collapse in={expandedCases[caseItem.caseId]}>
-                    <Card.Body className="case-card-body">
-                      <p><strong>Description:</strong> {caseItem.description}</p>
-                      <p><strong>Category:</strong> {caseItem.category}</p>
-                      <p><strong>Severity:</strong> {caseItem.severity}</p>
-                      <p><strong>Status:</strong> {caseItem.status}</p>
-                    </Card.Body>
-                  </Collapse>
-                </Card>
-              ))
-            )}
-          </Tab>
-        </Tabs>
       </Container>
 
       <CaseDetailsModal

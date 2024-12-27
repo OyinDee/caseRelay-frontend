@@ -6,6 +6,8 @@
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  padding-top: 80px;
+  background: #ffffff;
 }
 
 .dashboard-navbar {
@@ -36,6 +38,8 @@
   display: flex;
   flex-direction: column;
   align-items: center; /* Center the content */
+  max-width: 1200px;
+  padding: 2rem;
 }
 
 .user-details-card {
@@ -45,16 +49,27 @@
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .user-name {
   font-size: 2rem;
   font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #000;
 }
 
 .user-info p {
   font-size: 1rem;
   margin: 5px 0;
+  margin: 0.5rem 0;
+  color: #333;
 }
 
 .case-overview-title {
@@ -90,6 +105,9 @@
   font-size: 1.2rem;
   color: #777;
   padding: 20px;
+  text-align: center;
+  color: #666;
+  padding: 2rem;
 }
 
 .case-card {
@@ -100,6 +118,11 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: transform 0.2s;
 }
 
 .case-card-header {
@@ -111,11 +134,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #000;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 8px 8px 0 0;
+  font-weight: 500;
 }
 
 .case-card-body {
   padding: 1rem;
   font-size: 1rem;
+  padding: 1.5rem;
 }
 
 .case-card-body p {
@@ -124,6 +153,10 @@
 
 .case-card-header:hover {
   background-color: #2e2d2d;
+}
+
+.case-card:hover {
+  transform: translateY(-2px);
 }
 
 .case-tabs .nav-item {
@@ -150,10 +183,16 @@
   transition: background-color 0.2s ease;
   width: auto;
   margin: 0.25rem;
+  background: #000;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: background 0.2s;
 }
 
 .handover-button:hover {
   background-color: #333;
+  background: #333;
 }
 
 .case-tabs .nav-link.active {
@@ -165,18 +204,33 @@
 .custom-tabs .nav-link {
   color: #000 !important;
   background-color: transparent !important;
+  color: #666;
+  border: none;
+  padding: 1rem 1.5rem;
+  margin-right: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .custom-tabs .nav-link.active {
   color: #000 !important;
   font-weight: bold;
   border-bottom: 2px solid #000;
+  color: #000;
+  border-bottom: 2px solid #000;
+  background: transparent;
+}
+
+.custom-tabs {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 2rem;
 }
 
 @media (max-width: 768px) {
   .dashboard-container {
     margin: 10px;
     padding: 0.5rem;
+    padding: 1rem;
   }
 
   .user-details-card {
@@ -212,6 +266,8 @@
   .case-tabs .nav-link {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    margin-right: 0.5rem;
   }
 
   /* Fix for button container on mobile */
@@ -238,6 +294,8 @@
 .modal-content {
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
+  border-radius: 8px;
+  border: none;
 }
 
 .modal-header .btn-close {
@@ -276,6 +334,9 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loading-content {
@@ -287,4 +348,31 @@
   height: 3rem;
   border: 0.25em solid currentColor;
   border-right-color: transparent;
+}
+
+.search-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+/* Modal styles */
+.modal-content {
+  border-radius: 8px;
+  border: none;
+}
+
+.modal-header {
+  background: #000;
+  color: #fff;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-header .close {
+  color: #fff;
+}
+
+.btn-close {
+  filter: invert(1);
 }
