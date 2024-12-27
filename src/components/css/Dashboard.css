@@ -1,6 +1,6 @@
 body {
-  background-color: #f8f9fa;
-  color: #212529;
+  background-color: #ffffff;
+  color: #000000;
   font-family: Arial, sans-serif;
 }
 
@@ -22,7 +22,8 @@ body {
 }
 
 .user-details-card {
-  background-color: #e9ecef;
+  background-color: #ffffff;
+  color: #000000;
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
@@ -53,19 +54,28 @@ body {
   color: #ffffff;
 }
 
+.custom-tabs .nav-link.active .nav-link-title {
+  color: #ffffff;
+}
+
+.custom-tabs .nav-link.active::after {
+  content: attr(title);
+  color: #ffffff;
+}
+
 .case-card {
-  border: 1px solid #dee2e6;
+  border: 1px solid #000000;
   border-radius: 10px;
 }
 
 .case-card-header {
-  background-color: #343a40;
+  background-color: #000000;
   color: #ffffff;
   cursor: pointer;
 }
 
 .case-card-body {
-  background-color: #f8f9fa;
+  background-color: #ffffff;
 }
 
 .handover-button {
@@ -83,7 +93,7 @@ body {
 
 .no-cases-message {
   text-align: center;
-  color: #6c757d;
+  color: #000000;
 }
 
 .modal-content {
