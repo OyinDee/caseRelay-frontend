@@ -186,21 +186,17 @@ const DashboardPage = ({ onLogout }) => {
   };
 
   return (
-    <div className="dashboard-wrapper">
+    <div className="dashboard-wrapper mt-5">
       <Container className="dashboard-container mt-5">
         <div className="search-actions">
-  <div className="mb-2">
-    <SearchBar onSearchResults={handleSearchResults} />
-  </div>
-  <div>
-    <Button 
-      variant="dark" 
-      onClick={() => setShowCreateCaseModal(true)}
-    >
-      + New Case
-    </Button>
-  </div>
-</div>
+          <SearchBar onSearchResults={handleSearchResults} />
+          <Button 
+            variant="dark" 
+            onClick={() => setShowCreateCaseModal(true)}
+          >
+            + New Case
+          </Button>
+        </div>
         
         <div className="user-details-card">
           <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
