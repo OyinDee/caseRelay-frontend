@@ -19,7 +19,8 @@ const DashboardPage = ({ onLogout }) => {
     name: '',
     role: '',
     department: '',
-    badgeNumber: ''
+    badgeNumber: '',
+    policeId: '' // Add policeId here
   });
   const [newOfficerId, setNewOfficerId] = useState(""); 
   const [selectedCaseId, setSelectedCaseId] = useState(null);
@@ -30,7 +31,8 @@ const DashboardPage = ({ onLogout }) => {
     title: '',
     description: '',
     category: '',
-    severity: ''
+    severity: '',
+    assignedOfficerId: '' // Add assignedOfficerId here
   });
   const [isSearchResults, setIsSearchResults] = useState(false);
   const navigate = useNavigate();
@@ -58,6 +60,10 @@ const DashboardPage = ({ onLogout }) => {
       try {
         const parsedUserDetails = JSON.parse(storedUserDetails);
         setUserDetails(parsedUserDetails);
+        setNewCase((prevNewCase) => ({
+          ...prevNewCase,
+          assignedOfficerId: parsedUserDetails.policeId // Set assignedOfficerId from userDetails
+        }));
       } catch (error) {
         console.error('Error parsing user details:', error);
       }
@@ -150,10 +156,7 @@ const DashboardPage = ({ onLogout }) => {
     e.preventDefault();
     try {
       const data = {
-        title: newCase.title,
-        description: newCase.description,
-        category: newCase.category,
-        severity: newCase.severity,
+        ...newCase, // Spread the newCase state to include all its properties
         assignedOfficerId: String(userDetails.policeId) // Ensure it's a string
       };
 
@@ -203,6 +206,7 @@ const DashboardPage = ({ onLogout }) => {
                 <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
                 <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
                 <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
+                <p><strong>Police ID:</strong> {userDetails.policeId || 'N/A'}</p>
               </div>
             </div>
           </div>

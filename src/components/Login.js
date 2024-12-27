@@ -31,11 +31,10 @@ const LoginPage = () => {
         passcode,
         rank,
       });
-      const { token, userId, name, role, department, badgeNumber } = response.data;
 
       localStorage.setItem(
         "userDetails",
-        JSON.stringify({ userId, name, role, department, badgeNumber, rank })
+        JSON.stringify(response.data)
       );
       localStorage.setItem("jwtToken", token);
 
