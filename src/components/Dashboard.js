@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { api } from '../config/api';
-import CaseDetailsModal from './CaseDetailsModal';
-import SearchBar from './SearchBar';
 import './css/Dashboard.css';
 
 const DashboardPage = ({ onLogout }) => {
@@ -84,17 +81,34 @@ const DashboardPage = ({ onLogout }) => {
           <span className="user-role">{userDetails.role}</span>
         </div>
         <div className="tabs">
-          <button className={`tab ${activeTab === 'pending' ? 'active' : ''}`} 
-                  onClick={() => setActiveTab('pending')}>Pending</button>
-          <button className={`tab ${activeTab === 'closed' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('closed')}>Closed</button>
+          <button 
+            className={`tab ${activeTab === 'pending' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('pending')}
+          >
+            Pending
+          </button>
+          <button 
+            className={`tab ${activeTab === 'closed' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('closed')}
+          >
+            Closed
+          </button>
         </div>
       </header>
 
       <main className="main">
         <div className="actions">
-          <SearchBar onSearchResults={setCases} />
-          <button className="new-case" onClick={() => setShowCreateCaseModal(true)}>New Case</button>
+          <input
+            type="text"
+            placeholder="Search Cases"
+            onChange={(e) => {
+              const searchTerm = e.target.value.toLowerCase();
+              setCases(cases.filter(c => c.title.toLowerCase().includes(searchTerm)));
+            }}
+          />
+          <button className="new-case" onClick={() => setShowCreateCaseModal(true)}>
+            + New Case
+          </button>
         </div>
 
         <div className="cases">
@@ -119,17 +133,33 @@ const DashboardPage = ({ onLogout }) => {
                   <button onClick={() => {
                     setSelectedCaseId(caseItem.caseId);
                     setShowCaseModal(true);
-                  }}>Details</button>
+                  }}>
+                    View Details
+                  </button>
                   <button onClick={() => {
                     setSelectedCaseId(caseItem.caseId);
                     setShowHandoverModal(true);
-                  }}>Handover</button>
+                  }}>
+                    Handover
+                  </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </main>
+
+      {showCaseModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Case Details</h2>
+            <p>Details for Case ID: {selectedCaseId}</p>
+            <div className="modal-actions">
+              <button onClick={() => setShowCaseModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showHandoverModal && (
         <div className="modal">
@@ -152,7 +182,7 @@ const DashboardPage = ({ onLogout }) => {
       {showCreateCaseModal && (
         <div className="modal">
           <div className="modal-content">
-            <h2>New Case</h2>
+            <h2>Create New Case</h2>
             <form onSubmit={handleCreateCase}>
               <input
                 type="text"
@@ -165,16 +195,20 @@ const DashboardPage = ({ onLogout }) => {
                 value={newCase.description}
                 onChange={e => setNewCase({...newCase, description: e.target.value})}
               />
-              <select value={newCase.category} 
-                      onChange={e => setNewCase({...newCase, category: e.target.value})}>
+              <select 
+                value={newCase.category} 
+                onChange={e => setNewCase({...newCase, category: e.target.value})}
+              >
                 <option value="">Select Category</option>
                 <option>Theft</option>
                 <option>Assault</option>
                 <option>Fraud</option>
                 <option>Other</option>
               </select>
-              <select value={newCase.severity}
-                      onChange={e => setNewCase({...newCase, severity: e.target.value})}>
+              <select 
+                value={newCase.severity}
+                onChange={e => setNewCase({...newCase, severity: e.target.value})}
+              >
                 <option value="">Select Severity</option>
                 <option>Low</option>
                 <option>Medium</option>
@@ -189,12 +223,6 @@ const DashboardPage = ({ onLogout }) => {
           </div>
         </div>
       )}
-
-      <CaseDetailsModal
-        show={showCaseModal}
-        handleClose={() => setShowCaseModal(false)}
-        caseId={selectedCaseId}
-      />
     </div>
   );
 };
