@@ -32,7 +32,10 @@
   max-width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  margin-top: 10rem; /* Add this line */
+  margin-top: 15rem; /* Adjust this line to add more margin */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the content */
 }
 
 .user-details-card {
@@ -90,6 +93,8 @@
 }
 
 .case-card {
+  width: 100%; /* Ensure the case cards take full width */
+  max-width: 600px; /* Limit the maximum width */
   margin-bottom: 1rem;
   border: none;
   border-radius: 8px;

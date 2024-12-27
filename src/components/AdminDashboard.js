@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Container, Tabs, Tab, Card, Button, Table, Modal, Form, Alert, Spinner } from 'react-bootstrap';
 import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; 
 import './css/AdminDashboard.css';
 import SearchBar from './SearchBar';
 import { toast } from 'react-toastify';
@@ -24,12 +23,11 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const API_BASE_URL = 'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api';
 
-  const [stats, setStats] = useState(null);
-
   const fetchStats = async () => {
     try {
       const response = await api.get('/case/statistics');
-      setStats(response.data);
+      console.log('Statistics:', response.data);
+      setStatistics(response.data);
     } catch (error) {
       toast.error('Failed to fetch statistics');
     }
@@ -37,34 +35,39 @@ const AdminDashboardPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('jwtToken');
-    if (!token) {
+    const policeId = JSON.parse(localStorage.getItem('userDetails') || '{}').policeId;
+    if (!token || !policeId) {
       navigate('/login');
       return;
     }
 
-    try {
-      const decodedToken = jwtDecode(token);
-      if (!decodedToken || decodedToken.role !== 'Admin') {
-        // navigate('/dashboard');
-        return;
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/auth/userinfo/${policeId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        console.log('User Info:', response.data);
+        const userInfo = response.data;
+        if (userInfo.role !== 'Admin') {
+          navigate('/dashboard');
+          return;
+        }
+        fetchData();
+        fetchStats();
+      } catch (error) {
+        console.error('Failed to fetch user info:', error);
+        navigate('/login');
       }
-      console.log(decodedToken)
-      fetchData();
-      fetchStats();
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      navigate('/login');
-    }
+    };
+
+    fetchUserInfo();
   }, [navigate]);
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('jwtToken');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -74,6 +77,9 @@ const AdminDashboardPage = () => {
         axios.get(`${API_BASE_URL}/Case/all`, { headers }),
         axios.get(`${API_BASE_URL}/Case/statistics`, { headers })
       ]);
+
+      console.log('Cases:', casesResponse.data);
+      console.log('Statistics:', statsResponse.data);
 
       setCases(casesResponse.data);
       setStatistics(statsResponse.data);
@@ -91,12 +97,13 @@ const AdminDashboardPage = () => {
   const handlePromoteToAdmin = async (userId) => {
     try {
       const token = localStorage.getItem('jwtToken');
-      await axios.put(`${API_BASE_URL}/User/promote-to-admin/${userId}`, {}, {
+      const response = await axios.put(`${API_BASE_URL}/User/promote-to-admin/${userId}`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+      console.log('Promote to Admin Response:', response.data);
       toast.success('User promoted to admin successfully');
       fetchData();
     } catch (error) {
@@ -107,12 +114,13 @@ const AdminDashboardPage = () => {
   const handleChangeRole = async (userId, newRole) => {
     try {
       const token = localStorage.getItem('jwtToken');
-      await axios.put(`${API_BASE_URL}/User/change-role/${userId}`, JSON.stringify(newRole), {
+      const response = await axios.put(`${API_BASE_URL}/User/change-role/${userId}`, JSON.stringify(newRole), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+      console.log('Change Role Response:', response.data);
       alert('Role updated successfully');
       fetchData();
     } catch (error) {
@@ -124,11 +132,12 @@ const AdminDashboardPage = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         const token = localStorage.getItem('jwtToken');
-        await axios.delete(`${API_BASE_URL}/User/delete/${userId}`, {
+        const response = await axios.delete(`${API_BASE_URL}/User/delete/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
+        console.log('Delete User Response:', response.data);
         toast.success('User deleted successfully');
         fetchData();
       } catch (error) {
@@ -140,7 +149,7 @@ const AdminDashboardPage = () => {
   const handleApproveCase = async (caseId) => {
     try {
       const token = localStorage.getItem('jwtToken');
-      await axios.patch(
+      const response = await axios.patch(
         `${API_BASE_URL}/Case/${caseId}/approve`,
         {},
         {
@@ -150,6 +159,7 @@ const AdminDashboardPage = () => {
           }
         }
       );
+      console.log('Approve Case Response:', response.data);
       toast.success('Case approved successfully');
       fetchData();
     } catch (error) {
