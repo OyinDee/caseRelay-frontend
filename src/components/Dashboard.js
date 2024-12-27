@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { api } from '../config/api';
 import CaseDetailsModal from './CaseDetailsModal';
 import SearchBar from './SearchBar';
-import './Dashboard.css';
+import './css/Dashboard.css';
 
 const DashboardPage = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('pending');
