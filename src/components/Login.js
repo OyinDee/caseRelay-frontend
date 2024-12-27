@@ -32,13 +32,13 @@ const LoginPage = () => {
         rank,
       });
 
-      const { user, token } = response.data; // Extract user and token from response
+   
 
       localStorage.setItem(
         "userDetails",
-        JSON.stringify(user)
+        JSON.stringify(response.data)
       );
-      localStorage.setItem("jwtToken", token);
+      localStorage.setItem("jwtToken", response.data.token);
 
       toast.success("Login successful!");
       window.location.href = "/dashboard";
