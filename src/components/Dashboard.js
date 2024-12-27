@@ -1,228 +1,384 @@
 import React, { useState, useEffect } from 'react';
+import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Modal, Form } from 'react-bootstrap';
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './css/Dashboard.css';
+import CaseDetailsModal from './CaseDetailsModal';
+import SearchBar from './SearchBar';
 import { toast } from 'react-toastify';
 import { api } from '../config/api';
-import './css/Dashboard.css';
 
 const DashboardPage = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [key, setKey] = useState('pending');
   const [cases, setCases] = useState([]);
+  const [expandedCases, setExpandedCases] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userDetails, setUserDetails] = useState({
-    name: '', role: '', department: '', badgeNumber: '', policeId: ''
+    name: '',
+    role: '',
+    department: '',
+    badgeNumber: '',
+    policeId: '' // Add policeId here
   });
-  const [newOfficerId, setNewOfficerId] = useState("");
+  const [newOfficerId, setNewOfficerId] = useState(""); 
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [showCaseModal, setShowCaseModal] = useState(false);
-  const [showHandoverModal, setShowHandoverModal] = useState(false);
+  const [showHandoverModal, setShowHandoverModal] = useState(false); 
   const [showCreateCaseModal, setShowCreateCaseModal] = useState(false);
   const [newCase, setNewCase] = useState({
-    title: '', description: '', category: '', severity: '', assignedOfficerId: ''
+    title: '',
+    description: '',
+    category: '',
+    severity: '',
+    assignedOfficerId: '' // Add assignedOfficerId here
   });
+  const [isSearchResults, setIsSearchResults] = useState(false);
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('userDetails');
+    onLogout && onLogout();
+    navigate('/login');
+  };
+
+  const handleViewCase = (caseId) => {
+    setSelectedCaseId(caseId);
+    setShowCaseModal(true);
+  };
+
+  const handleCloseCaseModal = () => {
+    setShowCaseModal(false);
+    setSelectedCaseId(null);
+  };
 
   useEffect(() => {
     const storedUserDetails = localStorage.getItem('userDetails');
     if (storedUserDetails) {
-      const parsedUserDetails = JSON.parse(storedUserDetails);
-      setUserDetails(parsedUserDetails);
-      setNewCase(prev => ({ ...prev, assignedOfficerId: parsedUserDetails.policeId }));
+      try {
+        const parsedUserDetails = JSON.parse(storedUserDetails);
+        setUserDetails(parsedUserDetails);
+        setNewCase((prevNewCase) => ({
+          ...prevNewCase,
+          assignedOfficerId: parsedUserDetails.policeId // Set assignedOfficerId from userDetails
+        }));
+      } catch (error) {
+        console.error('Error parsing user details:', error);
+      }
     }
     fetchCases();
-  }, []);
+  }, [onLogout, navigate]);
 
   const fetchCases = async () => {
+    const jwtToken = localStorage.getItem('jwtToken');
+
+    if (!jwtToken) {
+      handleLogout(); 
+      return;
+    }
+
     try {
-      const response = await api.get('/case/user');
+      const response = await axios.get('https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/user', {
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
       setCases(response.data);
-    } catch (error) {
-      setError('Failed to fetch cases');
-      if (error.response?.status === 401) navigate('/login');
-    } finally {
+      console.log(response.data)
+      setIsLoading(false);
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 401) {
+          localStorage.removeItem('jwtToken');
+          navigate('/login');
+        } else {
+          const message = err.response?.data?.message || 'Failed to fetch cases. Try again.';
+          setError(message);
+        }
+      } else {
+        setError('An unexpected error occurred');
+      }
       setIsLoading(false);
     }
   };
 
+  const toggleCase = (caseId) => {
+    setExpandedCases((prev) => ({
+      ...prev,
+      [caseId]: !prev[caseId],
+    }));
+  };
+
+  const getPendingStatuses = ['Pending', 'Open', 'Investigating'];
+  const getSolvedStatuses = ['Closed', 'Resolved'];
+
+  const filteredCases = cases.filter((c) =>
+    (key === 'pending' && getPendingStatuses.includes(c.status)) ||
+    (key === 'closed' && getSolvedStatuses.includes(c.status))
+  );
+
   const handleHandover = async (caseId) => {
-    try {
-      await api.post(`/case/handover/${caseId}`, { NewOfficerId: newOfficerId });
-      toast.success('Case handed over successfully');
-      setShowHandoverModal(false);
-      fetchCases();
-    } catch (error) {
-      toast.error('Failed to handover case');
+    if (!caseId || !newOfficerId) {
+      toast.error("Please provide a valid Case ID and Officer ID.");
+      return;
     }
+
+    try {
+      const jwtToken = localStorage.getItem('jwtToken');
+      const response = await axios.post(
+        `https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/handover/${caseId}`,
+        { NewOfficerId: newOfficerId },
+        {
+          headers: {
+            'Authorization': `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      toast.success(response.data.message || 'Case handed over successfully.');
+      setShowHandoverModal(false);
+      fetchCases(); 
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error handing over the case.');
+    }
+  };
+
+  const handleSearchResults = (results) => {
+    setCases(results);
+    setIsSearchResults(true);
   };
 
   const handleCreateCase = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/case', { ...newCase, assignedOfficerId: userDetails.policeId });
-      toast.success('Case created successfully');
+      const data = {
+        ...newCase, // Spread the newCase state to include all its properties
+        assignedOfficerId: String(userDetails.policeId) // Ensure it's a string
+      };
+
+      await api.post('/case', data, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      toast.success('Case created successfully!');
       setShowCreateCaseModal(false);
       fetchCases();
     } catch (error) {
-      toast.error('Failed to create case');
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || 'Failed to create case');
+      } else {
+        toast.error('An unexpected error occurred');
+      }
     }
   };
 
-  const filteredCases = cases.filter(c => 
-    activeTab === 'pending' ? 
-      ['Pending', 'Open', 'Investigating'].includes(c.status) : 
-      ['Closed', 'Resolved'].includes(c.status)
-  );
+  const handleUpdateCaseStatus = async (caseId, status) => {
+    try {
+      await api.patch(`/case/${caseId}/status`, { status });
+      toast.success('Case status updated successfully');
+      fetchCases();
+    } catch (error) {
+      toast.error('Failed to update case status');
+    }
+  };
 
   return (
-    <div className="dashboard">
-      <header className="header">
-        <div className="user-info">
-          <span className="user-name">{userDetails.name}</span>
-          <span className="user-role">{userDetails.role}</span>
-        </div>
-        <div className="tabs">
-          <button 
-            className={`tab ${activeTab === 'pending' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('pending')}
+    <div className="dashboard-wrapper mt-5">
+      <Container className="dashboard-container mt-5">
+        <div className="search-actions">
+          <SearchBar onSearchResults={handleSearchResults} />
+          <Button 
+            variant="dark" 
+            onClick={() => setShowCreateCaseModal(true)}
           >
-            Pending
-          </button>
-          <button 
-            className={`tab ${activeTab === 'closed' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('closed')}
-          >
-            Closed
-          </button>
-        </div>
-      </header>
-
-      <main className="main">
-        <div className="actions">
-          <input
-            type="text"
-            placeholder="Search Cases"
-            onChange={(e) => {
-              const searchTerm = e.target.value.toLowerCase();
-              setCases(cases.filter(c => c.title.toLowerCase().includes(searchTerm)));
-            }}
-          />
-          <button className="new-case" onClick={() => setShowCreateCaseModal(true)}>
             + New Case
-          </button>
+          </Button>
         </div>
-
-        <div className="cases">
-          {isLoading ? (
-            <div className="loading">Loading...</div>
-          ) : error ? (
-            <div className="error">{error}</div>
-          ) : filteredCases.map(caseItem => (
-            <div key={caseItem.caseId} className="case">
-              <div className="case-header">
-                <h3>{caseItem.title}</h3>
-                <span className="status">{caseItem.status}</span>
-              </div>
-              <div className="case-body">
-                <p>{caseItem.description}</p>
-                <div className="meta">
-                  <span>{caseItem.category}</span>
-                  <span>{caseItem.severity}</span>
-                  <span>{new Date(caseItem.reportedAt).toLocaleDateString()}</span>
-                </div>
-                <div className="actions">
-                  <button onClick={() => {
-                    setSelectedCaseId(caseItem.caseId);
-                    setShowCaseModal(true);
-                  }}>
-                    View Details
-                  </button>
-                  <button onClick={() => {
-                    setSelectedCaseId(caseItem.caseId);
-                    setShowHandoverModal(true);
-                  }}>
-                    Handover
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </main>
-
-      {showCaseModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Case Details</h2>
-            <p>Details for Case ID: {selectedCaseId}</p>
-            <div className="modal-actions">
-              <button onClick={() => setShowCaseModal(false)}>Close</button>
-            </div>
+        
+        <div className="user-details-card">
+          <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
+          <div className="user-info">
+            <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
+            <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
+            <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
+            <p><strong>Police ID:</strong> {userDetails.policeId || 'N/A'}</p>
           </div>
         </div>
-      )}
 
-      {showHandoverModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Handover Case</h2>
-            <input
-              type="text"
-              placeholder="New Officer ID"
-              value={newOfficerId}
-              onChange={e => setNewOfficerId(e.target.value)}
-            />
-            <div className="modal-actions">
-              <button onClick={() => handleHandover(selectedCaseId)}>Confirm</button>
-              <button onClick={() => setShowHandoverModal(false)}>Cancel</button>
-            </div>
+        {isLoading ? (
+          <div className="loading-overlay">
+            <Spinner animation="border" variant="dark" />
           </div>
-        </div>
-      )}
+        ) : error ? (
+          <Alert variant="danger">{error}</Alert>
+        ) : (
+          <Tabs
+            id="case-tabs"
+            activeKey={key}
+            onSelect={(k) => {
+              setKey(k);
+              setIsSearchResults(false);
+            }}
+            className="custom-tabs"
+          >
+            <Tab eventKey="pending" title="Pending Cases">
+              {filteredCases.length === 0 ? (
+                <p className="no-cases-message">No pending cases</p>
+              ) : (
+                filteredCases.map((caseItem) => (
+                  <Card key={caseItem.caseId} className="case-card mb-3">
+                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
+                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
+                    </Card.Header>
+                    <Collapse in={expandedCases[caseItem.caseId]}>
+                      <Card.Body className="case-card-body">
+                        <p><strong>Description:</strong> {caseItem.description}</p>
+                        <p><strong>Category:</strong> {caseItem.category}</p>
+                        <p><strong>Severity:</strong> {caseItem.severity}</p>
+                        <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
+                        <p><strong>Status:</strong> {caseItem.status}</p>
+                        {!isSearchResults && (
+                          <div className="d-flex justify-content-between">
+                            <button
+                              className="handover-button w-100 mx-1"
+                              onClick={() => {
+                                setSelectedCaseId(caseItem.caseId);
+                                setShowHandoverModal(true);
+                              }}
+                            >
+                              Handover this case
+                            </button>
+                            <button 
+                              className="handover-button w-100 mx-1" 
+                              onClick={() => handleViewCase(caseItem.caseId)}
+                            >
+                              View Case
+                            </button>
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Collapse>
+                  </Card>
+                ))
+              )}
+            </Tab>
 
-      {showCreateCaseModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Create New Case</h2>
-            <form onSubmit={handleCreateCase}>
-              <input
+            <Tab eventKey="closed" title="Solved Cases">
+              {filteredCases.length === 0 ? (
+                <p className="no-cases-message">No solved cases</p>
+              ) : (
+                filteredCases.map((caseItem) => (
+                  <Card key={caseItem.caseId} className="case-card mb-3">
+                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
+                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
+                    </Card.Header>
+                    <Collapse in={expandedCases[caseItem.caseId]}>
+                      <Card.Body className="case-card-body">
+                        <p><strong>Description:</strong> {caseItem.description}</p>
+                        <p><strong>Category:</strong> {caseItem.category}</p>
+                        <p><strong>Severity:</strong> {caseItem.severity}</p>
+                        <p><strong>Status:</strong> {caseItem.status}</p>
+                      </Card.Body>
+                    </Collapse>
+                  </Card>
+                ))
+              )}
+            </Tab>
+          </Tabs>
+        )}
+      </Container>
+
+      <CaseDetailsModal
+        show={showCaseModal}
+        handleClose={handleCloseCaseModal}
+        caseId={selectedCaseId}
+      />
+
+      <Modal show={showHandoverModal} onHide={() => setShowHandoverModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Handover Case</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p><small><i>Disclaimer: Handover will transfer the case to another officer. Ensure the provided Officer ID is correct.</i></small></p>
+          <Form onSubmit={(e) => { e.preventDefault(); handleHandover(selectedCaseId); }}>
+            <Form.Group controlId="officerId">
+              <Form.Label>New Officer ID</Form.Label>
+              <Form.Control
                 type="text"
-                placeholder="Title"
+                value={newOfficerId}
+                onChange={(e) => setNewOfficerId(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Button variant="dark" type="submit" className="w-100 mt-2">
+              Handover
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showCreateCaseModal} onHide={() => setShowCreateCaseModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Create New Case</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleCreateCase}>
+            <Form.Group className="mb-3">
+              <Form.Label>Title</Form.Label>
+              <Form.Control
+                type="text"
                 value={newCase.title}
-                onChange={e => setNewCase({...newCase, title: e.target.value})}
+                onChange={(e) => setNewCase({...newCase, title: e.target.value})}
+                required
               />
-              <textarea
-                placeholder="Description"
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
                 value={newCase.description}
-                onChange={e => setNewCase({...newCase, description: e.target.value})}
+                onChange={(e) => setNewCase({...newCase, description: e.target.value})}
+                required
               />
-              <select 
-                value={newCase.category} 
-                onChange={e => setNewCase({...newCase, category: e.target.value})}
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={newCase.category}
+                onChange={(e) => setNewCase({...newCase, category: e.target.value})}
+                required
               >
-                <option value="">Select Category</option>
-                <option>Theft</option>
-                <option>Assault</option>
-                <option>Fraud</option>
-                <option>Other</option>
-              </select>
-              <select 
+                <option value="">Select category...</option>
+                <option value="Theft">Theft</option>
+                <option value="Assault">Assault</option>
+                <option value="Fraud">Fraud</option>
+                <option value="Other">Other</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Severity</Form.Label>
+              <Form.Select
                 value={newCase.severity}
-                onChange={e => setNewCase({...newCase, severity: e.target.value})}
+                onChange={(e) => setNewCase({...newCase, severity: e.target.value})}
+                required
               >
-                <option value="">Select Severity</option>
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-                <option>Critical</option>
-              </select>
-              <div className="modal-actions">
-                <button type="submit">Create</button>
-                <button type="button" onClick={() => setShowCreateCaseModal(false)}>Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                <option value="">Select severity...</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </Form.Select>
+            </Form.Group>
+            <Button variant="dark" type="submit" className="w-100">
+              Create Case
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

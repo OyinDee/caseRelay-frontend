@@ -74,9 +74,9 @@ const AdminDashboardPage = () => {
       };
 
       const [casesResponse, statsResponse, usersResponse] = await Promise.all([
-        axios.get(`${API_BASE_URL}/Case/all`, { headers }),
-        axios.get(`${API_BASE_URL}/Case/statistics`, { headers }),
-        axios.get(`${API_BASE_URL}/User/all`, { headers }) // Add users fetching
+        axios.get(`${API_BASE_URL}/case/all`, { headers }),
+        axios.get(`${API_BASE_URL}/case/statistics`, { headers }),
+        axios.get(`${API_BASE_URL}/user/all`, { headers }) // Add users fetching
       ]);
 
       console.log('Cases:', casesResponse.data);
@@ -100,7 +100,7 @@ const AdminDashboardPage = () => {
   const handlePromoteToAdmin = async (userId) => {
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await axios.put(`${API_BASE_URL}/User/promote-to-admin/${userId}`, {}, {
+      const response = await axios.put(`${API_BASE_URL}/user/promote-to-admin/${userId}`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
