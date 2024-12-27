@@ -193,8 +193,9 @@ const DashboardPage = ({ onLogout }) => {
     <SearchBar onSearchResults={handleSearchResults} />
   </div>
   <div>
+    <br/>
     <Button 
-      variant="dark" 
+      variant="dark" className="w-full"
       onClick={() => setShowCreateCaseModal(true)}
     >
       + New Case
