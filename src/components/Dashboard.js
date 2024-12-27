@@ -186,7 +186,7 @@ const DashboardPage = ({ onLogout }) => {
   };
 
   return (
-    <div className="dashboard-wrapper">
+    <div className="dashboard-wrapper mt-5">
       <Container className="dashboard-container mt-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <SearchBar onSearchResults={handleSearchResults} />

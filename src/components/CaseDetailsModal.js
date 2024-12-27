@@ -249,7 +249,7 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
   return (
     <Modal 
       show={show} 
-      onHide={handleClose}  // Changed from onHide to handleClose
+      onHide={handleClose} 
       size="lg" 
       centered
       scrollable  // Add this to make modal content scrollable
@@ -413,7 +413,7 @@ const CaseDetailsModal = ({ caseId, show, handleClose }) => {  // Changed onHide
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>  // Changed from onHide
+        <Button variant="secondary" onClick={handleClose}> 
           Close
         </Button>
         <Button variant="dark" onClick={exportCaseReport}>
