@@ -32,11 +32,11 @@ const LoginPage = () => {
         rank,
       });
 
-      const { token, ...userDetails } = response.data; // Extract token and user details
+      const { user, token } = response.data; // Extract user and token from response
 
       localStorage.setItem(
         "userDetails",
-        JSON.stringify(userDetails)
+        JSON.stringify(user)
       );
       localStorage.setItem("jwtToken", token);
 
