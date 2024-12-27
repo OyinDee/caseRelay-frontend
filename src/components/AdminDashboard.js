@@ -73,16 +73,19 @@ const AdminDashboardPage = () => {
         'Content-Type': 'application/json'
       };
 
-      const [casesResponse, statsResponse] = await Promise.all([
+      const [casesResponse, statsResponse, usersResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/Case/all`, { headers }),
-        axios.get(`${API_BASE_URL}/Case/statistics`, { headers })
+        axios.get(`${API_BASE_URL}/Case/statistics`, { headers }),
+        axios.get(`${API_BASE_URL}/User/all`, { headers }) // Add users fetching
       ]);
 
       console.log('Cases:', casesResponse.data);
       console.log('Statistics:', statsResponse.data);
+      console.log('Users:', usersResponse.data);
 
       setCases(casesResponse.data);
       setStatistics(statsResponse.data);
+      setUsers(usersResponse.data); // Set users data
       setIsLoading(false);
     } catch (err) {
       if (err instanceof AxiosError) {
