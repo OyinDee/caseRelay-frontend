@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Card, Button, Collapse, Spinner, Alert, Modal, Form } from 'react-bootstrap';
 import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './css/Dashboard.css';
-import CaseDetailsModal from './CaseDetailsModal';
-import SearchBar from './SearchBar';
 import { toast } from 'react-toastify';
 import { api } from '../config/api';
+import CaseDetailsModal from './CaseDetailsModal';
+import SearchBar from './SearchBar';
+import './Dashboard.css';
 
 const DashboardPage = ({ onLogout }) => {
-  const [key, setKey] = useState('pending');
+  const [activeTab, setActiveTab] = useState('pending');
   const [cases, setCases] = useState([]);
   const [expandedCases, setExpandedCases] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -20,19 +18,19 @@ const DashboardPage = ({ onLogout }) => {
     role: '',
     department: '',
     badgeNumber: '',
-    policeId: '' // Add policeId here
+    policeId: ''
   });
-  const [newOfficerId, setNewOfficerId] = useState(""); 
+  const [newOfficerId, setNewOfficerId] = useState("");
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [showCaseModal, setShowCaseModal] = useState(false);
-  const [showHandoverModal, setShowHandoverModal] = useState(false); 
+  const [showHandoverModal, setShowHandoverModal] = useState(false);
   const [showCreateCaseModal, setShowCreateCaseModal] = useState(false);
   const [newCase, setNewCase] = useState({
     title: '',
     description: '',
     category: '',
     severity: '',
-    assignedOfficerId: '' // Add assignedOfficerId here
+    assignedOfficerId: ''
   });
   const [isSearchResults, setIsSearchResults] = useState(false);
   const navigate = useNavigate();
@@ -62,7 +60,7 @@ const DashboardPage = ({ onLogout }) => {
         setUserDetails(parsedUserDetails);
         setNewCase((prevNewCase) => ({
           ...prevNewCase,
-          assignedOfficerId: parsedUserDetails.policeId // Set assignedOfficerId from userDetails
+          assignedOfficerId: parsedUserDetails.policeId
         }));
       } catch (error) {
         console.error('Error parsing user details:', error);
@@ -73,12 +71,10 @@ const DashboardPage = ({ onLogout }) => {
 
   const fetchCases = async () => {
     const jwtToken = localStorage.getItem('jwtToken');
-
     if (!jwtToken) {
       handleLogout(); 
       return;
     }
-
     try {
       const response = await axios.get('https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api/case/user', {
         headers: {
@@ -86,9 +82,7 @@ const DashboardPage = ({ onLogout }) => {
           'Content-Type': 'application/json'
         }
       });
-
       setCases(response.data);
-      console.log(response.data)
       setIsLoading(false);
     } catch (err) {
       if (err instanceof AxiosError) {
@@ -117,8 +111,8 @@ const DashboardPage = ({ onLogout }) => {
   const getSolvedStatuses = ['Closed', 'Resolved'];
 
   const filteredCases = cases.filter((c) =>
-    (key === 'pending' && getPendingStatuses.includes(c.status)) ||
-    (key === 'closed' && getSolvedStatuses.includes(c.status))
+    (activeTab === 'pending' && getPendingStatuses.includes(c.status)) ||
+    (activeTab === 'closed' && getSolvedStatuses.includes(c.status))
   );
 
   const handleHandover = async (caseId) => {
@@ -126,7 +120,6 @@ const DashboardPage = ({ onLogout }) => {
       toast.error("Please provide a valid Case ID and Officer ID.");
       return;
     }
-
     try {
       const jwtToken = localStorage.getItem('jwtToken');
       const response = await axios.post(
@@ -156,10 +149,9 @@ const DashboardPage = ({ onLogout }) => {
     e.preventDefault();
     try {
       const data = {
-        ...newCase, // Spread the newCase state to include all its properties
-        assignedOfficerId: String(userDetails.policeId) // Ensure it's a string
+        ...newCase,
+        assignedOfficerId: String(userDetails.policeId)
       };
-
       await api.post('/case', data, {
         headers: { 'Content-Type': 'application/json' }
       });
@@ -175,126 +167,90 @@ const DashboardPage = ({ onLogout }) => {
     }
   };
 
-  const handleUpdateCaseStatus = async (caseId, status) => {
-    try {
-      await api.patch(`/case/${caseId}/status`, { status });
-      toast.success('Case status updated successfully');
-      fetchCases();
-    } catch (error) {
-      toast.error('Failed to update case status');
-    }
-  };
-
   return (
-    <div className="dashboard-wrapper mt-5">
-      <Container className="dashboard-container">
-        <div className="search-actions">
-  <div className="mb-2">
-    <SearchBar onSearchResults={handleSearchResults} />
-  </div>
-  <div>
-    <br/>
-    <Button 
-      variant="dark" className="w-full"
-      onClick={() => setShowCreateCaseModal(true)}
-    >
-      + New Case
-    </Button>
-  </div>
-</div>
-        
-        <div className="user-details-card">
-          <h3 className="user-name">{userDetails.name || 'Officer Dashboard'}</h3>
-          <div className="user-info">
-            <p><strong>Role:</strong> {userDetails.role || 'N/A'}</p>
-            <p><strong>Department:</strong> {userDetails.department || 'N/A'}</p>
-            <p><strong>Badge Number:</strong> {userDetails.badgeNumber || 'N/A'}</p>
-            <p><strong>Police ID:</strong> {userDetails.policeId || 'N/A'}</p>
+    <div className="dashboard">
+      <aside className="sidebar">
+        <div className="user-profile">
+          <div className="avatar">{userDetails.name?.[0]?.toUpperCase() || 'O'}</div>
+          <h3>{userDetails.name || 'Officer Dashboard'}</h3>
+          <div className="user-details">
+            <p>{userDetails.role || 'N/A'}</p>
+            <p>{userDetails.department || 'N/A'}</p>
+            <p>Badge #{userDetails.badgeNumber || 'N/A'}</p>
+            <p>ID: {userDetails.policeId || 'N/A'}</p>
           </div>
         </div>
+        <div className="tab-buttons">
+          <button 
+            className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pending')}
+          >
+            Pending Cases
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'closed' ? 'active' : ''}`}
+            onClick={() => setActiveTab('closed')}
+          >
+            Solved Cases
+          </button>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        <header className="content-header">
+          <SearchBar onSearchResults={handleSearchResults} />
+          <button className="create-btn" onClick={() => setShowCreateCaseModal(true)}>
+            + New Case
+          </button>
+        </header>
 
         {isLoading ? (
-          <div className="loading-overlay">
-            <Spinner animation="border" variant="dark" />
-          </div>
+          <div className="loader">Loading...</div>
         ) : error ? (
-          <Alert variant="danger">{error}</Alert>
+          <div className="error-message">{error}</div>
         ) : (
-          <Tabs
-            id="case-tabs"
-            activeKey={key}
-            onSelect={(k) => {
-              setKey(k);
-              setIsSearchResults(false);
-            }}
-            className="custom-tabs"
-          >
-            <Tab eventKey="pending" title="Pending Cases">
-              {filteredCases.length === 0 ? (
-                <p className="no-cases-message">No pending cases</p>
-              ) : (
-                filteredCases.map((caseItem) => (
-                  <Card key={caseItem.caseId} className="case-card mb-3">
-                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
-                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
-                    </Card.Header>
-                    <Collapse in={expandedCases[caseItem.caseId]}>
-                      <Card.Body className="case-card-body">
-                        <p><strong>Description:</strong> {caseItem.description}</p>
-                        <p><strong>Category:</strong> {caseItem.category}</p>
-                        <p><strong>Severity:</strong> {caseItem.severity}</p>
-                        <p><strong>Reported At:</strong> {new Date(caseItem.reportedAt).toLocaleString()}</p>
-                        <p><strong>Status:</strong> {caseItem.status}</p>
-                        {!isSearchResults && (
-                          <div className="d-flex justify-content-between">
-                            <button
-                              className="handover-button w-100 mx-1"
-                              onClick={() => {
-                                setSelectedCaseId(caseItem.caseId);
-                                setShowHandoverModal(true);
-                              }}
-                            >
-                              Handover this case
-                            </button>
-                            <button 
-                              className="handover-button w-100 mx-1" 
-                              onClick={() => handleViewCase(caseItem.caseId)}
-                            >
-                              View Case
-                            </button>
-                          </div>
-                        )}
-                      </Card.Body>
-                    </Collapse>
-                  </Card>
-                ))
-              )}
-            </Tab>
-
-            <Tab eventKey="closed" title="Solved Cases">
-              {filteredCases.length === 0 ? (
-                <p className="no-cases-message">No solved cases</p>
-              ) : (
-                filteredCases.map((caseItem) => (
-                  <Card key={caseItem.caseId} className="case-card mb-3">
-                    <Card.Header onClick={() => toggleCase(caseItem.caseId)} className="case-card-header">
-                      <strong>{caseItem.caseNumber}</strong> - {caseItem.title}
-                    </Card.Header>
-                    <Collapse in={expandedCases[caseItem.caseId]}>
-                      <Card.Body className="case-card-body">
-                        <p><strong>Description:</strong> {caseItem.description}</p>
-                        <p><strong>Category:</strong> {caseItem.category}</p>
-                        <p><strong>Severity:</strong> {caseItem.severity}</p>
-                        <p><strong>Status:</strong> {caseItem.status}</p>
-                      </Card.Body>
-                    </Collapse>
-                  </Card>
-                ))
-              )}
-            </Tab>
-          </Tabs>
+          <div className="cases-grid">
+            {filteredCases.map((caseItem) => (
+              <div key={caseItem.caseId} className="case-card">
+                <div className="case-header" onClick={() => toggleCase(caseItem.caseId)}>
+                  <h3>{caseItem.title}</h3>
+                  <span className={`status-badge ${caseItem.status.toLowerCase()}`}>
+                    {caseItem.status}
+                  </span>
+                </div>
+                <div className={`case-content ${expandedCases[caseItem.caseId] ? 'expanded' : ''}`}>
+                  <p className="case-number">Case #{caseItem.caseNumber}</p>
+                  <p className="case-description">{caseItem.description}</p>
+                  <div className="case-meta">
+                    <span className="meta-item">
+                      <label>Category:</label> {caseItem.category}
+                    </span>
+                    <span className="meta-item">
+                      <label>Severity:</label> {caseItem.severity}
+                    </span>
+                    <span className="meta-item">
+                      <label>Reported:</label> {new Date(caseItem.reportedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {!isSearchResults && (
+                    <div className="case-actions">
+                      <button onClick={() => handleViewCase(caseItem.caseId)}>
+                        View Details
+                      </button>
+                      <button onClick={() => {
+                        setSelectedCaseId(caseItem.caseId);
+                        setShowHandoverModal(true);
+                      }}>
+                        Handover Case
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
-      </Container>
+      </main>
 
       <CaseDetailsModal
         show={showCaseModal}
@@ -302,90 +258,95 @@ const DashboardPage = ({ onLogout }) => {
         caseId={selectedCaseId}
       />
 
-      <Modal show={showHandoverModal} onHide={() => setShowHandoverModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Handover Case</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p><small><i>Disclaimer: Handover will transfer the case to another officer. Ensure the provided Officer ID is correct.</i></small></p>
-          <Form onSubmit={(e) => { e.preventDefault(); handleHandover(selectedCaseId); }}>
-            <Form.Group controlId="officerId">
-              <Form.Label>New Officer ID</Form.Label>
-              <Form.Control
-                type="text"
-                value={newOfficerId}
-                onChange={(e) => setNewOfficerId(e.target.value)}
-                required
-              />
-            </Form.Group>
-            <Button variant="dark" type="submit" className="w-100 mt-2">
-              Handover
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
+      {showHandoverModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Handover Case</h2>
+              <button className="close-btn" onClick={() => setShowHandoverModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="disclaimer">Handover will transfer the case to another officer. Ensure the provided Officer ID is correct.</p>
+              <form onSubmit={(e) => { e.preventDefault(); handleHandover(selectedCaseId); }}>
+                <div className="form-group">
+                  <label>New Officer ID</label>
+                  <input
+                    type="text"
+                    value={newOfficerId}
+                    onChange={(e) => setNewOfficerId(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="submit-btn">Handover</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Modal show={showCreateCaseModal} onHide={() => setShowCreateCaseModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New Case</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleCreateCase}>
-            <Form.Group className="mb-3">
-              <Form.Label>Title</Form.Label>
-              <Form.Control
-                type="text"
-                value={newCase.title}
-                onChange={(e) => setNewCase({...newCase, title: e.target.value})}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={newCase.description}
-                onChange={(e) => setNewCase({...newCase, description: e.target.value})}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
-              <Form.Select
-                value={newCase.category}
-                onChange={(e) => setNewCase({...newCase, category: e.target.value})}
-                required
-              >
-                <option value="">Select category...</option>
-                <option value="Theft">Theft</option>
-                <option value="Assault">Assault</option>
-                <option value="Fraud">Fraud</option>
-                <option value="Other">Other</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Severity</Form.Label>
-              <Form.Select
-                value={newCase.severity}
-                onChange={(e) => setNewCase({...newCase, severity: e.target.value})}
-                required
-              >
-                <option value="">Select severity...</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </Form.Select>
-            </Form.Group>
-            <Button variant="dark" type="submit" className="w-100">
-              Create Case
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
+      {showCreateCaseModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Create New Case</h2>
+              <button className="close-btn" onClick={() => setShowCreateCaseModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleCreateCase}>
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    value={newCase.title}
+                    onChange={(e) => setNewCase({...newCase, title: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    rows={3}
+                    value={newCase.description}
+                    onChange={(e) => setNewCase({...newCase, description: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Category</label>
+                  <select
+                    value={newCase.category}
+                    onChange={(e) => setNewCase({...newCase, category: e.target.value})}
+                    required
+                  >
+                    <option value="">Select category...</option>
+                    <option value="Theft">Theft</option>
+                    <option value="Assault">Assault</option>
+                    <option value="Fraud">Fraud</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Severity</label>
+                  <select
+                    value={newCase.severity}
+                    onChange={(e) => setNewCase({...newCase, severity: e.target.value})}
+                    required
+                  >
+                    <option value="">Select severity...</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+                <button type="submit" className="submit-btn">Create Case</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default DashboardPage;
+export default DashboardPage; 
