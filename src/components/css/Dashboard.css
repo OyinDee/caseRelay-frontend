@@ -1,378 +1,274 @@
-/* Dashboard.css */
-.dashboard-wrapper {
+.dashboard {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
-  padding-top: 80px;
-  background: #ffffff;
+  background-color: white;
 }
 
-.dashboard-navbar {
-  margin-bottom: 30px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  padding: 0.5rem 1rem;
+.sidebar {
+  width: 280px;
+  background: black;
+  color: white;
+  padding: 2rem;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-.dashboard-brand {
-  font-weight: bold;
-  font-size: 1.5rem;
+.user-profile {
+  text-align: center;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logout-btn {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.dashboard-container {
-  margin: 20px;
-  padding: 1rem;
-  max-width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-  margin-top: 15rem; /* Adjust this line to add more margin */
+.avatar {
+  width: 80px;
+  height: 80px;
+  background: white;
+  color: black;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
   display: flex;
-  flex-direction: column;
-  align-items: center; /* Center the content */
-  max-width: 1200px;
-  padding: 2rem;
-}
-
-.user-details-card {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  background: #fff;
-  border: 1px solid #eee;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.user-name {
+  align-items: center;
+  justify-content: center;
   font-size: 2rem;
   font-weight: bold;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #000;
 }
 
-.user-info p {
-  font-size: 1rem;
-  margin: 5px 0;
+.user-details {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.user-details p {
   margin: 0.5rem 0;
-  color: #333;
 }
 
-.case-overview-title {
-  font-size: 1.8rem;
-  color: #333;
-  margin-top: 20px;
+.tab-buttons {
+  margin-top: 2rem;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60vh;
-  flex-direction: column;
+.tab-btn {
+  width: 100%;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  background: none;
+  border: 1px solid white;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.loading-text {
-  margin-top: 10px;
-  font-size: 1.2rem;
+.tab-btn:hover {
+  background: white;
+  color: black;
 }
 
-.error-alert {
-  margin-top: 20px;
-  font-size: 1.1rem;
+.tab-btn.active {
+  background: white;
+  color: black;
 }
 
-.case-tabs {
-  margin-top: 30px;
-  margin-bottom: 1rem;
-}
-
-.no-cases-message {
-  font-size: 1.2rem;
-  color: #777;
-  padding: 20px;
-  text-align: center;
-  color: #666;
+.main-content {
+  flex: 1;
+  margin-left: 280px;
   padding: 2rem;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.create-btn {
+  padding: 0.8rem 1.5rem;
+  background: black;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.create-btn:hover {
+  opacity: 0.9;
+}
+
+.cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 .case-card {
-  width: 100%; /* Ensure the case cards take full width */
-  max-width: 600px; /* Limit the maximum width */
-  margin-bottom: 1rem;
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  transition: transform 0.2s;
 }
 
-.case-card-header {
-  background-color: #000;
-  color: #fff;
+.case-header {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  padding: 1rem;
-  font-size: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #000;
-  color: #fff;
-  padding: 1rem;
-  border-radius: 8px 8px 0 0;
-  font-weight: 500;
 }
 
-.case-card-body {
-  padding: 1rem;
-  font-size: 1rem;
-  padding: 1.5rem;
-}
-
-.case-card-body p {
-  margin-bottom: 10px;
-}
-
-.case-card-header:hover {
-  background-color: #2e2d2d;
-}
-
-.case-card:hover {
-  transform: translateY(-2px);
-}
-
-.case-tabs .nav-item {
+.case-header h3 {
+  margin: 0;
   font-size: 1.1rem;
 }
 
-.case-tabs .nav-link {
-  padding: 0.75rem 1.5rem;
-  color: #000;
-  border: none;
-  margin-right: 0.5rem;
-  border-radius: 4px;
-}
-
-.handover-button {
-  background-color: #000;
-  color: #fff;
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.2s ease;
-  width: auto;
-  margin: 0.25rem;
-  background: #000;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
   font-weight: 500;
-  transition: background 0.2s;
-}
-
-.handover-button:hover {
-  background-color: #333;
-  background: #333;
-}
-
-.case-tabs .nav-link.active {
-  font-weight: bold;
-  color: #fff;
-  background-color: #000;
-}
-
-.custom-tabs .nav-link {
-  color: #000 !important;
-  background-color: transparent !important;
-  color: #666;
-  border: none;
-  padding: 1rem 1.5rem;
-  margin-right: 1rem;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.custom-tabs .nav-link.active {
-  color: #000 !important;
-  font-weight: bold;
-  border-bottom: 2px solid #000;
-  color: #000;
-  border-bottom: 2px solid #000;
-  background: transparent;
-}
-
-.custom-tabs {
-  border-bottom: 1px solid #eee;
-  margin-bottom: 2rem;
-}
-
-@media (max-width: 768px) {
-  .dashboard-container {
-    margin: 10px;
-    padding: 0.5rem;
-    padding: 1rem;
-  }
-
-  .user-details-card {
-    padding: 1rem;
-  }
-
-  .user-name {
-    font-size: 1.25rem;
-  }
-
-  .case-overview-title {
-    font-size: 1.5rem;
-  }
-
-  .loading-container {
-    flex-direction: column;
-    margin-top: 50px;
-  }
-
-  .case-card-header {
-    padding: 0.75rem;
-  }
-
-  .case-card-body {
-    padding: 0.75rem;
-  }
-
-  .handover-button {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-  }
-
-  .case-tabs .nav-link {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    padding: 0.75rem 1rem;
-    margin-right: 0.5rem;
-  }
-
-  /* Fix for button container on mobile */
-  .d-flex.justify-content-between {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .handover-button.w-100 {
-    margin: 0.25rem 0;
-  }
-}
-
-/* Modal Fixes */
-.modal {
-  padding-right: 0 !important;
-}
-
-.modal-dialog {
-  margin: 0.5rem;
-  max-width: calc(100% - 1rem);
-}
-
-.modal-content {
-  max-height: calc(100vh - 2rem);
-  overflow-y: auto;
-  border-radius: 8px;
-  border: none;
-}
-
-.modal-header .btn-close {
-  filter: invert(1);
-}
-
-@media (min-width: 576px) {
-  .modal-dialog {
-    margin: 1.75rem auto;
-    max-width: 500px;
-  }
-}
-
-.view-case-button {
-  background-color: #000000;
+  background: black;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+}
+
+.case-content {
+  padding: 1.5rem;
+  display: none;
+}
+
+.case-content.expanded {
+  display: block;
+}
+
+.case-number {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.case-description {
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.case-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-item {
+  font-size: 0.9rem;
+}
+
+.meta-item label {
+  color: rgba(0, 0, 0, 0.6);
+  margin-right: 0.5rem;
+}
+
+.case-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.case-actions button {
+  flex: 1;
+  padding: 0.8rem;
+  border: 1px solid black;
+  background: white;
+  color: black;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s;
 }
 
-.view-case-button:hover {
-  background-color: #000000;
+.case-actions button:hover {
+  background: black;
+  color: white;
 }
 
-.loading-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.loading-content {
-  text-align: center;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-  border: 0.25em solid currentColor;
-  border-right-color: transparent;
-}
-
-.search-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-/* Modal styles */
-.modal-content {
+.modal {
+  background: white;
   border-radius: 8px;
-  border: none;
+  width: 90%;
+  max-width: 500px;
 }
 
 .modal-header {
-  background: #000;
-  color: #fff;
-  border-radius: 8px 8px 0 0;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.modal-header .close {
-  color: #fff;
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
-.btn-close {
-  filter: invert(1);
+.modal-body {
+  padding: 1.5rem;
 }
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.submit-btn:hover {
+  opacity: 0.9;
+}
+
+.loader {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-message {
+  color: black;
+  text-align: center;
+  padding: 2rem;
+  border: 1px solid black;
+  margin: 2rem;
+  }
