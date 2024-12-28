@@ -241,6 +241,35 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const handoverCase = async (caseId, newOfficerId) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${API_BASE_URL}/case/handover/${caseId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          newOfficerId: newOfficerId
+        })
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+  
+      // Success notification
+      toast.success('Case successfully handed over');
+      // Refresh case list
+      fetchData();
+  
+    } catch (error) {
+      toast.error('Failed to handover case: ' + error.message);
+    }
+  };
+
   const handleSearchResults = (results) => {
     setCases(results);
   };
@@ -321,6 +350,13 @@ const AdminDashboardPage = () => {
                             >
                               {caseItem.isApproved ? 'Approved' : 'Approve'}
                             </Dropdown.Item>
+                            {userRole === 'Admin' && (
+                              <Dropdown.Item
+                                onClick={() => handoverCase(caseItem.caseId, prompt('Enter new officer ID'))}
+                              >
+                                Handover Case
+                              </Dropdown.Item>
+                            )}
                           </Dropdown.Menu>
                         </Dropdown>
                       </div>
