@@ -188,7 +188,7 @@ const AdminDashboardPage = () => {
       const token = localStorage.getItem('jwtToken');
       const response = await axios.put(
         `${API_BASE_URL}/user/change-role/${userId}`,
-        { newRole }, // Changed from { role: newRole } to { newRole }
+        { newRole },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
