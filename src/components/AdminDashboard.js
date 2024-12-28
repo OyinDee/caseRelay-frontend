@@ -196,7 +196,7 @@ const AdminDashboardPage = () => {
   const handleDeleteUserConfirmed = async (userId) => {
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await axios.delete(`${API_BASE_URL}/User/delete/${userId}`, {
+      const response = await axios.delete(`${API_BASE_URL}/user/delete/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       console.log('Delete User Response:', response.data);
@@ -211,7 +211,7 @@ const AdminDashboardPage = () => {
     try {
       const token = localStorage.getItem('jwtToken');
       const response = await axios.patch(
-        `${API_BASE_URL}/Case/${caseId}/approve`,
+        `${API_BASE_URL}/case/${caseId}/approve`,
         {},
         {
           headers: {
