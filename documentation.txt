@@ -1,0 +1,95 @@
+# CaseRelay Frontend Documentation
+
+## Overview
+
+CaseRelay is a web application designed to manage and track cases within a police department. The application provides functionalities for both regular officers and administrators. Administrators have additional privileges to manage users and view statistics.
+
+## Features
+
+### User Authentication
+- **Login**: Users can log in using their credentials.
+- **Signup**: New users can sign up for an account.
+- **Logout**: Users can log out of their account.
+
+### Dashboard
+- **Case Management**: View, approve, and manage cases.
+- **User Management**: Administrators can add, promote, demote, and delete users.
+- **Statistics**: View statistics related to cases.
+
+### Notifications
+- **View Notifications**: Users can view notifications related to their activities.
+- **Mark as Read**: Users can mark notifications as read.
+- **Delete Notifications**: Users can delete notifications.
+
+## Components
+
+### Header
+- Displays the navigation menu.
+- Shows notifications for logged-in users.
+- Provides links to different sections of the application.
+
+### AdminDashboard
+- Displays tabs for cases, users, and statistics.
+- Allows administrators to manage cases and users.
+- Provides a modal for creating new users.
+
+### CreateUserModal
+- A modal form for creating new users.
+- Collects user details such as police ID, name, email, phone, role, department, badge number, and rank.
+
+### CaseDetailsModal
+- Displays detailed information about a specific case.
+
+### SearchBar
+- Provides a search functionality to filter cases.
+
+## API Integration
+
+### User Management
+- **Create User**: `POST /user/create`
+- **Promote to Admin**: `PUT /user/promote-to-admin/{userId}`
+- **Change Role**: `PUT /user/change-role/{userId}`
+- **Delete User**: `DELETE /user/delete/{userId}`
+
+### Case Management
+- **Get All Cases**: `GET /case/all`
+- **Approve Case**: `PATCH /case/{caseId}/approve`
+
+### Statistics
+- **Get Statistics**: `GET /case/statistics`
+
+### Notifications
+- **Get Notifications**: `GET /notification`
+- **Mark as Read**: `PATCH /notification/{notificationId}/read`
+- **Delete Notification**: `DELETE /notification/{notificationId}`
+
+## Technologies Used
+
+- **React**: For building the user interface.
+- **React Bootstrap**: For UI components and styling.
+- **Axios**: For making HTTP requests.
+- **React Router**: For routing and navigation.
+- **React Toastify**: For displaying toast notifications.
+
+## Setup Instructions
+
+1. Clone the repository.
+2. Install dependencies using `npm install`.
+3. Start the development server using `npm start`.
+4. Open the application in your browser at `http://localhost:3000`.
+
+## Environment Variables
+
+- `REACT_APP_API_BASE_URL`: The base URL for the API.
+
+## Folder Structure
+
+- **src/components**: Contains all the React components.
+- **src/css**: Contains CSS files for styling.
+- **src/config**: Contains configuration files such as API configuration.
+
+## Future Enhancements
+
+- **Role-Based Access Control**: Implement more granular access control based on user roles.
+- **Advanced Search**: Add advanced search filters for cases.
+- **Reporting**: Generate reports based on case data and statistics.
