@@ -41,6 +41,7 @@ const AdminDashboardPage = () => {
     badgeNumber: '',
     rank: ''
   });
+  const [userRole, setUserRole] = useState('');
   const navigate = useNavigate();
   const API_BASE_URL = 'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api';
 
@@ -56,7 +57,9 @@ const AdminDashboardPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('jwtToken');
-    const policeId = JSON.parse(localStorage.getItem('userDetails') || '{}').policeId;
+    const userDetails = JSON.parse(localStorage.getItem('userDetails') || '{}');
+    setUserRole(userDetails.role || '');
+    const policeId = userDetails.policeId;
     if (!token || !policeId) {
       navigate('/login');
       return;
