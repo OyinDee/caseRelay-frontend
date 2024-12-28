@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Bell, Check, Trash2 } from 'lucide-react';
+import axios from 'axios';
 import './css/Header.css';
 
 const Header = () => {
@@ -8,8 +10,13 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const API_BASE_URL = 'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api';
 
   useEffect(() => {
     const token = localStorage.getItem('jwtToken');
@@ -24,6 +31,56 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications();
+    }
+  }, [isLoggedIn]);
+
+  const fetchNotifications = async () => {
+    setIsLoadingNotifications(true);
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await axios.get(`${API_BASE_URL}/notification`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      console.log('Notifications:', response.data);
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  };
+
+  const markAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      await axios.patch(
+        `${API_BASE_URL}/notification/${notificationId}/read`,
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` }}
+      );
+      setNotifications(prev => 
+        prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const deleteNotification = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      await axios.delete(`${API_BASE_URL}/notification/${notificationId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.filter(n => n.notificationId !== notificationId));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('jwtToken');
@@ -167,6 +224,75 @@ const Header = () => {
             </ul>
           )}
         </div>
+
+        {isLoggedIn && (
+          <div className="notifications-wrapper">
+            <button 
+              className="notifications-button"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Bell size={20} color="white" />
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="notification-badge">
+                  {notifications.filter(n => !n.isRead).length}
+                </span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="notifications-dropdown">
+                <div className="notifications-header">
+                  <h6>Notifications</h6>
+                  {notifications.length > 0 && (
+                    <button 
+                      className="mark-all-read"
+                      onClick={() => notifications.forEach(n => markAsRead(n.notificationId))}
+                    >
+                      Mark all as read
+                    </button>
+                  )}
+                </div>
+                <div className="notifications-list">
+                  {isLoadingNotifications ? (
+                    <div className="notification-loading">Loading...</div>
+                  ) : notifications.length === 0 ? (
+                    <p className="no-notifications">No notifications</p>
+                  ) : (
+                    notifications.map(notification => (
+                      <div 
+                        key={notification.notificationId} 
+                        className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                      >
+                        <div className="notification-content">
+                          <h6 className="notification-title">{notification.title}</h6>
+                          <p className="notification-message">{notification.message}</p>
+                          <small className="notification-meta">
+                            {new Date(notification.createdAt).toLocaleString()} • By {notification.actionBy}
+                          </small>
+                        </div>
+                        <div className="notification-actions">
+                          {!notification.isRead && (
+                            <button 
+                              className="action-button"
+                              onClick={() => markAsRead(notification.notificationId)}
+                            >
+                              <Check size={16} />
+                            </button>
+                          )}
+                          <button 
+                            className="action-button delete"
+                            onClick={() => deleteNotification(notification.notificationId)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {isNavigating && (
         <div className="navigation-loader">
