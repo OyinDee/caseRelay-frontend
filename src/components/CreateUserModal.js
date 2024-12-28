@@ -85,12 +85,23 @@ const CreateUserModal = ({ show, handleClose, handleCreateUser, newUser, setNewU
           <Form.Group controlId="formDepartment">
             <Form.Label>Department</Form.Label>
             <Form.Control
-              type="text"
+              as="select"
               name="department"
               value={newUser.department}
               onChange={handleChange}
               required
-            />
+            >
+              <option value="Homicide">Homicide</option>
+              <option value="Narcotics">Narcotics</option>
+              <option value="Cyber Crime">Cyber Crime</option>
+              <option value="Traffic">Traffic</option>
+              <option value="Internal Affairs">Internal Affairs</option>
+              <option value="Fraud">Fraud</option>
+              <option value="Special Victims Unit">Special Victims Unit</option>
+              <option value="Patrol">Patrol</option>
+              <option value="SWAT">SWAT</option>
+              <option value="K-9 Unit">K-9 Unit</option>
+            </Form.Control>
           </Form.Group>
           <Form.Group controlId="formBadgeNumber">
             <Form.Label>Badge Number</Form.Label>
@@ -105,12 +116,24 @@ const CreateUserModal = ({ show, handleClose, handleCreateUser, newUser, setNewU
           <Form.Group controlId="formRank">
             <Form.Label>Rank</Form.Label>
             <Form.Control
-              type="text"
+              as="select"
               name="rank"
               value={newUser.rank}
               onChange={handleChange}
               required
-            />
+            >
+              <option value="Officer">Officer</option>
+              <option value="Detective">Detective</option>
+              <option value="Sergeant">Sergeant</option>
+              <option value="Lieutenant">Lieutenant</option>
+              <option value="Captain">Captain</option>
+              <option value="Chief">Chief</option>
+              <option value="Deputy Chief">Deputy Chief</option>
+              <option value="Inspector">Inspector</option>
+              <option value="Commander">Commander</option>
+              <option value="Deputy Inspector">Deputy Inspector</option>
+              <option value="Deputy Commander">Deputy Commander</option>
+            </Form.Control>
           </Form.Group>
           <Button variant="dark" type="submit" className="mt-3">
             Create User
