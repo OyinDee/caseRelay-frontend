@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { api } from '../config/api';
 import CaseDetailsModal from './CaseDetailsModal';
 import { Dropdown } from 'react-bootstrap';
+import CreateUserModal from './CreateUserModal';
 
 const AdminDashboardPage = () => {
   const [key, setKey] = useState('cases');
@@ -29,6 +30,17 @@ const AdminDashboardPage = () => {
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState({ type: '', data: null });
+  const [newUser, setNewUser] = useState({
+    policeId: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    role: 'Officer',
+    department: '',
+    badgeNumber: '',
+    rank: ''
+  });
   const navigate = useNavigate();
   const API_BASE_URL = 'https://cr-bybsg3akhphkf3b6.canadacentral-01.azurewebsites.net/api';
 
@@ -176,7 +188,7 @@ const AdminDashboardPage = () => {
       const token = localStorage.getItem('jwtToken');
       const response = await axios.put(
         `${API_BASE_URL}/user/change-role/${userId}`,
-        { role: newRole },
+        { newRole }, // Changed from { role: newRole } to { newRole }
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -204,6 +216,7 @@ const AdminDashboardPage = () => {
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete user');
+      console.log(error)
     }
   };
 
@@ -240,6 +253,33 @@ const AdminDashboardPage = () => {
   const handleCloseCaseModal = () => {
     setShowCaseModal(false);
     setSelectedCaseId(null);
+  };
+
+  const handleCreateUser = async (userData) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${API_BASE_URL}/user/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+
+      const newUser = await response.json();
+      toast.success('User created successfully');
+      setUsers([...users, newUser]);
+      setShowUserModal(false);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error(error.message || 'Failed to create user');
+    }
   };
 
   if (isLoading) {
@@ -325,7 +365,7 @@ const AdminDashboardPage = () => {
                               </Dropdown.Item>
                             )}
                             <Dropdown.Item
-                              onClick={() => handleDeleteUser(user.userID)}
+                              onClick={() => handleDeleteUser(user.policeId)}
                               className="text-danger"
                             >
                               Delete
@@ -442,6 +482,14 @@ const AdminDashboardPage = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <CreateUserModal
+        show={showUserModal}
+        handleClose={() => setShowUserModal(false)}
+        handleCreateUser={handleCreateUser}
+        newUser={newUser}
+        setNewUser={setNewUser}
+      />
     </>
   );
 };
