@@ -188,7 +188,7 @@ const AdminDashboardPage = () => {
       const token = localStorage.getItem('jwtToken');
       const response = await axios.put(
         `${API_BASE_URL}/user/change-role/${userId}`,
-        { newRole: newRole }, // Ensure the newRole field is correctly passed
+        { newRole: newRole },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -365,7 +365,7 @@ const AdminDashboardPage = () => {
                               </Dropdown.Item>
                             )}
                             <Dropdown.Item
-                              onClick={() => handleDeleteUser(user.policeId)}
+                              onClick={() => handleDeleteUser(user.userID)}
                               className="text-danger"
                             >
                               Delete
