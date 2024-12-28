@@ -19,36 +19,42 @@
 
 .statistics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
 }
 
 .stat-card {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid #000;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .stat-number {
   font-size: 2.5rem;
   font-weight: bold;
   color: #000;
-  margin: 1rem 0;
   text-align: center;
+  margin: 0;
 }
 
 .stat-card .card-title {
   color: #000;
   text-align: center;
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .loading-container {
@@ -85,6 +91,51 @@
   border-color: #333;
 }
 
+.cases-grid, .users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.case-item, .user-item {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.case-item:hover, .user-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.case-header-content, .user-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.case-header-content h5, .user-header-content h5 {
+  margin: 0;
+}
+
+.dropdown-menu {
+  border: 1px solid #000;
+  border-radius: 4px;
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: #fee;
+}
+
 @media (max-width: 768px) {
   .admin-dashboard {
     padding: 1rem;
@@ -93,4 +144,32 @@
   .statistics-container {
     grid-template-columns: 1fr;
   }
+
+  .cases-grid, .users-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 1rem;
+  }
+
+  .card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .statistics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-header {
+  background-color: #000;
+  color: #fff;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
 }
