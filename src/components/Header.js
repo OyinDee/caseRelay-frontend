@@ -39,6 +39,7 @@ const Header = () => {
   }, [isLoggedIn]);
 
   const fetchNotifications = async () => {
+    if (!isLoggedIn) return;
     setIsLoadingNotifications(true);
     try {
       const token = localStorage.getItem('jwtToken');
