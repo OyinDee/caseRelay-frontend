@@ -171,6 +171,28 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const handleChangeRoleConfirmed = async (userId, newRole) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await axios.put(
+        `${API_BASE_URL}/user/change-role/${userId}`,
+        { role: newRole },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      console.log('Change Role Response:', response.data);
+      toast.success(`User role changed to ${newRole} successfully`);
+      fetchData();
+    } catch (error) {
+      console.error('Change Role Error:', error);
+      toast.error(error.response?.data?.message || 'Failed to change user role');
+    }
+  };
+
   const handleDeleteUserConfirmed = async (userId) => {
     try {
       const token = localStorage.getItem('jwtToken');
